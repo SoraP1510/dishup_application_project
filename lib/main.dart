@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
-import 'home_page.dart'; // We'll create this next
+import 'package:flutter/services.dart';
+import 'home_page.dart';
+import 'login_page.dart';
+import 'welcome_page.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   runApp(const DishUpApp());
 }
 
@@ -18,7 +23,7 @@ class DishUpApp extends StatelessWidget {
         scaffoldBackgroundColor: Colors.grey[850],
         fontFamily: 'Arial',
       ),
-      home: HomePage(),
+      home: WelcomePage(),
     );
   }
 }
