@@ -1,16 +1,6 @@
-# dishup_application
+# DishUp Application
 
-A new Flutter project.
+A mobile application development project. DishUp is an application that allows you to managed and maintained your health 
+simply by being able to plan your meal with good nutrition, and you're also able to add your daily routine whether it's
+an exercise routine or your sleep hours. This app will motivates you to become healthy in a long sustainable path.
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
