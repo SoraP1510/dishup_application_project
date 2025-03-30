@@ -22,9 +22,12 @@ class LoginPage extends StatelessWidget {
             children: [
               // Back Button
               IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => Navigator.pop(context),
-              ),
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const WelcomePage()),
+                      )),
               const SizedBox(height: 10),
 
               // Login Text

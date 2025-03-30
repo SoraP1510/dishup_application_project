@@ -2,6 +2,7 @@ import 'package:dishup_application/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'create_info_page.dart';
+import 'welcome_page.dart';
 
 class SignUpPage extends StatelessWidget {
   const SignUpPage({super.key});
@@ -22,7 +23,11 @@ class SignUpPage extends StatelessWidget {
               // Back Arrow
               IconButton(
                 icon: const Icon(Icons.arrow_back),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const WelcomePage()),
+                      ),
               ),
               const SizedBox(height: 10),
 
