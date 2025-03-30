@@ -23,7 +23,7 @@ class DishUpApp extends StatelessWidget {
         scaffoldBackgroundColor: Colors.grey[850],
         fontFamily: 'Arial',
       ),
-      home: WelcomePage(),
+      home: HomePage(),
     );
   }
 }
