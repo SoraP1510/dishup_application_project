@@ -1,0 +1,2 @@
+C:/Users/phuti/OneDrive/Desktop/project/dishup_application_project/android/app/.cxx/Debug/632v3y16/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/phuti/OneDrive/Desktop/project/dishup_application_project/android/app/.cxx/Debug/632v3y16/x86_64/CMakeFiles/rebuild_cache.dir

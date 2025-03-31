@@ -1,10 +1,50 @@
 import 'package:flutter/material.dart';
+import 'calendar_page.dart';
+import 'add_page.dart';
+import 'activity_page.dart';
+import 'setting_page.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final int _selectedIndex = 0;
+
+  void _onItemTapped(int index) {
+    if (index == _selectedIndex) return;
+
+    Widget page;
+    switch (index) {
+      case 1:
+        page = CalendarPage();
+        break;
+      case 2:
+        page = AddPage();
+        break;
+      case 3:
+        page = ActivityPage();
+        break;
+      case 4:
+        page = SettingPage();
+        break;
+      default:
+        return;
+    }
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => page),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[850], // Dark background
+      backgroundColor: Colors.grey[850],
       body: SafeArea(
         child: Container(
           decoration: BoxDecoration(
@@ -56,14 +96,14 @@ class HomePage extends StatelessWidget {
                       Text("Today's Goal", style: TextStyle(fontSize: 16)),
                       SizedBox(height: 6),
                       LinearProgressIndicator(
-                        value: 0,
+                        value: 0.5,
                         backgroundColor: Colors.grey[300],
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
                         minHeight: 3,
                       ),
                       SizedBox(height: 8),
                       Text(
-                        '0 / 6000 Kcal',
+                        '3000 / 6000 Kcal',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ],
@@ -87,34 +127,55 @@ class HomePage extends StatelessWidget {
         ),
       ),
 
-
       // Bottom Navigation Bar
       bottomNavigationBar: BottomAppBar(
-        color: Color.fromARGB(255, 255, 255, 255), // soft purple background
+        color: Colors.white,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              IconButton(icon: Icon(Icons.home), onPressed: () {}),
-              IconButton(icon: Icon(Icons.calendar_month), onPressed: () {}),
-              
-               Container(
-          height: 120,
-          width: 55,
-          decoration: BoxDecoration(
-            color: Color(0xFF60BC2B),
-            borderRadius: BorderRadius.circular(15),
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.add, color: Colors.white),
-            iconSize: 35,
-            onPressed: () {},
-          ),
-        ),
-
-              IconButton(icon: Icon(Icons.monitor_heart), onPressed: () {}),
-              IconButton(icon: Icon(Icons.settings), onPressed: () {}),
+              IconButton(
+                icon: Icon(Icons.home,
+                    color: _selectedIndex == 0
+                        ? Color(0xFF60BC2B)
+                        : Colors.black),
+                onPressed: () => _onItemTapped(0),
+              ),
+              IconButton(
+                icon: Icon(Icons.calendar_month,
+                    color: _selectedIndex == 1
+                        ? Color(0xFF60BC2B)
+                        : Colors.black),
+                onPressed: () => _onItemTapped(1),
+              ),
+              Container(
+                height: 120,
+                width: 55,
+                decoration: BoxDecoration(
+                  color: Color(0xFF60BC2B),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.add, color: Colors.white),
+                  iconSize: 35,
+                  onPressed: () => _onItemTapped(2),
+                ),
+              ),
+              IconButton(
+                icon: Icon(Icons.monitor_heart,
+                    color: _selectedIndex == 3
+                        ? Color(0xFF60BC2B)
+                        : Colors.black),
+                onPressed: () => _onItemTapped(3),
+              ),
+              IconButton(
+                icon: Icon(Icons.settings,
+                    color: _selectedIndex == 4
+                        ? Color(0xFF60BC2B)
+                        : Colors.black),
+                onPressed: () => _onItemTapped(4),
+              ),
             ],
           ),
         ),

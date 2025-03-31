@@ -163,7 +163,7 @@ class _CreateInfoPageState extends State<CreateInfoPage> {
 
 class _Label extends StatelessWidget {
   final String text;
-  const _Label(this.text, {super.key});
+  const _Label(this.text);
 
   @override
   Widget build(BuildContext context) {

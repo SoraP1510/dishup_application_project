@@ -1,4 +1,3 @@
-import 'package:dishup_application/home_page.dart';
 import 'package:dishup_application/welcome_page.dart';
 import 'package:flutter/material.dart';
 import 'signup_page.dart';

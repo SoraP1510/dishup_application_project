@@ -30,6 +30,7 @@ environment:
 dependencies:
 
   google_fonts: ^6.1.0
+  table_calendar: ^3.0.9
 
   flutter:
     sdk: flutter
@@ -63,6 +64,9 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/meal_bg.png
+    - assets/images/meal_bg1.jpg
+
+    
 
   # assets:
   #   - images/a_dot_burr.jpeg
