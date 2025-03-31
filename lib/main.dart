@@ -1,3 +1,4 @@
+import 'package:dishup_application/welcome_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'home_page.dart';
@@ -21,7 +22,7 @@ class DishUpApp extends StatelessWidget {
         scaffoldBackgroundColor: Colors.grey[850],
         fontFamily: 'Arial',
       ),
-      home: HomePage(),
+      home: WelcomePage(),
     );
   }
 }

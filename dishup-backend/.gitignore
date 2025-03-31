@@ -1,0 +1,12 @@
+# Node.js
+node_modules/
+.env
+.env.local
+.DS_Store
+
+# Logs
+logs
+*.log
+
+# Optional build artifacts
+dist/

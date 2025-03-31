@@ -49,7 +49,6 @@ class _CalendarPageState extends State<CalendarPage> {
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
           ),
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -58,7 +57,9 @@ class _CalendarPageState extends State<CalendarPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Icon(Icons.account_circle, size: 28),
-                  Text('DishUp', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                  Text('DishUp',
+                      style:
+                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                   Icon(Icons.notifications, size: 24),
                 ],
               ),
@@ -112,7 +113,8 @@ class _CalendarPageState extends State<CalendarPage> {
 
   Widget _navIcon(IconData icon, int index) {
     return IconButton(
-      icon: Icon(icon, color: _selectedIndex == index ? Color(0xFF60BC2B) : Colors.black),
+      icon: Icon(icon,
+          color: _selectedIndex == index ? Color(0xFF60BC2B) : Colors.black),
       onPressed: () => _onItemTapped(index),
     );
   }

@@ -1,7 +1,20 @@
+import 'package:dishup_application/home_page.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:uuid/uuid.dart';
 
 class CreateInfoPage extends StatefulWidget {
-  const CreateInfoPage({super.key});
+  final String fullName;
+  final String email;
+  final String password;
+
+  const CreateInfoPage({
+    super.key,
+    required this.fullName,
+    required this.email,
+    required this.password,
+  });
 
   @override
   State<CreateInfoPage> createState() => _CreateInfoPageState();
@@ -33,7 +46,8 @@ class _CreateInfoPageState extends State<CreateInfoPage> {
               // Back arrow
               IconButton(
                 icon: const Icon(Icons.arrow_back),
-                onPressed: () => Navigator.pop(context), //This one doesn't return to the before page
+                onPressed: () => Navigator.pop(
+                    context), //This one doesn't return to the before page
               ),
               const SizedBox(height: 10),
 
@@ -101,8 +115,57 @@ class _CreateInfoPageState extends State<CreateInfoPage> {
               // Finish Button
               Center(
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Handle finish logic here
+                  onPressed: () async {
+                    final uuid = const Uuid().v4();
+                    final username = usernameController.text.trim();
+                    final age = int.tryParse(ageController.text.trim()) ?? 0;
+                    final weight =
+                        double.tryParse(weightController.text.trim()) ?? 0.0;
+                    final height =
+                        double.tryParse(heightController.text.trim()) ?? 0.0;
+
+                    if (username.isEmpty ||
+                        selectedGender == null ||
+                        age == 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text("Please complete all fields")),
+                      );
+                      return;
+                    }
+
+                    final url = Uri.parse(
+                        'http://10.0.2.2:3000/api/signup'); // 👈 Replace with your backend URL
+
+                    final response = await http.post(
+                      url,
+                      headers: {'Content-Type': 'application/json'},
+                      body: jsonEncode({
+                        "id": uuid,
+                        "fullname": widget.fullName,
+                        "email": widget.email,
+                        "password": widget.password,
+                        "gender": selectedGender,
+                        "username": username,
+                        "age": age,
+                        "weight": weight,
+                        "height": height,
+                        "kcal_target": 2000,
+                        "avatar_url": null,
+                      }),
+                    );
+
+                    if (response.statusCode == 201) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const HomePage()),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Error: ${response.body}")),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF6DDC5A),

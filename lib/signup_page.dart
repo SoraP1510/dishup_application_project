@@ -1,11 +1,30 @@
 import 'package:dishup_application/login_page.dart';
+import 'package:dishup_application/create_info_page.dart';
+import 'package:dishup_application/welcome_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'create_info_page.dart';
-import 'welcome_page.dart';
 
-class SignUpPage extends StatelessWidget {
+class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
+
+  @override
+  State<SignUpPage> createState() => _SignUpPageState();
+}
+
+class _SignUpPageState extends State<SignUpPage> {
+  final nameController = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,9 +32,7 @@ class SignUpPage extends StatelessWidget {
       backgroundColor: Colors.grey[850],
       body: SafeArea(
         child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-          ),
+          decoration: const BoxDecoration(color: Colors.white),
           padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 25),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -23,48 +40,70 @@ class SignUpPage extends StatelessWidget {
               // Back Arrow
               IconButton(
                 icon: const Icon(Icons.arrow_back),
-                onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const WelcomePage()),
-                      ),
+                onPressed: () => Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const WelcomePage()),
+                ),
               ),
               const SizedBox(height: 10),
 
-              // Title
               const Text(
                 'CREATE ACCOUNT',
                 style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 30),
 
-              // Full Name
               const InputLabel("FULL NAME"),
-              CustomInputField(hint: "Full name"),
+              CustomInputField(hint: "Full name", controller: nameController),
               const SizedBox(height: 20),
 
-              // Email
               const InputLabel("EMAIL"),
-              CustomInputField(hint: "Email"),
+              CustomInputField(hint: "Email", controller: emailController),
               const SizedBox(height: 20),
 
-              // Password
               const InputLabel("PASSWORD"),
-              CustomInputField(hint: "Password", obscure: true),
+              CustomInputField(
+                  hint: "Password",
+                  obscure: true,
+                  controller: passwordController),
               const SizedBox(height: 20),
 
-              // Confirm Password
               const InputLabel("CONFIRM PASSWORD"),
-              CustomInputField(hint: "Confirm Password", obscure: true),
+              CustomInputField(
+                  hint: "Confirm Password",
+                  obscure: true,
+                  controller: confirmPasswordController),
               const SizedBox(height: 35),
 
               // Sign Up Button
               Center(
                 child: ElevatedButton(
                   onPressed: () {
+                    final fullName = nameController.text.trim();
+                    final email = emailController.text.trim();
+                    final password = passwordController.text.trim();
+                    final confirm = confirmPasswordController.text.trim();
+
+                    if (fullName.isEmpty ||
+                        email.isEmpty ||
+                        password.isEmpty ||
+                        confirm != password) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text("Please check your input")),
+                      );
+                      return;
+                    }
+
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (_) => const CreateInfoPage()),
+                      MaterialPageRoute(
+                        builder: (_) => CreateInfoPage(
+                          fullName: fullName,
+                          email: email,
+                          password: password,
+                        ),
+                      ),
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -81,9 +120,10 @@ class SignUpPage extends StatelessWidget {
                       Text(
                         'SIGN UP',
                         style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                       SizedBox(width: 8),
                       Icon(Icons.arrow_forward, color: Colors.white),
@@ -109,7 +149,7 @@ class SignUpPage extends StatelessWidget {
                         ),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
-                            Navigator.push(
+                            Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
                                   builder: (context) => const LoginPage()),
@@ -146,7 +186,14 @@ class InputLabel extends StatelessWidget {
 class CustomInputField extends StatelessWidget {
   final String hint;
   final bool obscure;
-  const CustomInputField({super.key, required this.hint, this.obscure = false});
+  final TextEditingController? controller;
+
+  const CustomInputField({
+    super.key,
+    required this.hint,
+    this.obscure = false,
+    this.controller,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -159,12 +206,17 @@ class CustomInputField extends StatelessWidget {
         color: Colors.white,
       ),
       child: TextField(
+        controller: controller,
         obscureText: obscure,
+        keyboardType: hint.toLowerCase().contains("email")
+            ? TextInputType.emailAddress
+            : TextInputType.text,
         decoration: InputDecoration(
           hintText: hint,
           border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide.none),
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide.none,
+          ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16),
         ),
       ),

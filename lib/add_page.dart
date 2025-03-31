@@ -56,7 +56,6 @@ class _AddPageState extends State<AddPage> {
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
           ),
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -66,42 +65,45 @@ class _AddPageState extends State<AddPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Icon(Icons.account_circle, size: 28),
-                  Text('DishUp', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                  Text('DishUp',
+                      style:
+                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                   Icon(Icons.notifications, size: 24),
                 ],
               ),
               const SizedBox(height: 20),
-
               const Text('MEAL'),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
                 value: _mealType,
-                items: ['meal', 'snack', 'drink'].map((type) => DropdownMenuItem(
-                  value: type,
-                  child: Text(type),
-                )).toList(),
+                items: ['meal', 'snack', 'drink']
+                    .map((type) => DropdownMenuItem(
+                          value: type,
+                          child: Text(type),
+                        ))
+                    .toList(),
                 onChanged: (value) {
                   setState(() {
                     _mealType = value;
                   });
                 },
                 decoration: InputDecoration(
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
               const SizedBox(height: 20),
-
               const Text('MENU'),
               const SizedBox(height: 6),
               TextField(
                 controller: _menuController,
                 decoration: InputDecoration(
                   hintText: 'Menu',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
               const SizedBox(height: 20),
-
               const Text('Calorie'),
               const SizedBox(height: 6),
               TextField(
@@ -109,22 +111,22 @@ class _AddPageState extends State<AddPage> {
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   hintText: 'Kcal',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
               const SizedBox(height: 20),
-
               const Text('PORTION'),
               const SizedBox(height: 6),
               TextField(
                 controller: _portionController,
                 decoration: InputDecoration(
                   hintText: portionHint,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
               const SizedBox(height: 30),
-
               Center(
                 child: ElevatedButton(
                   onPressed: () {
@@ -139,14 +141,17 @@ class _AddPageState extends State<AddPage> {
                       SnackBar(content: Text('บันทึกเรียบร้อย')),
                     );
 
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomePage()));
+                    Navigator.pushReplacement(
+                        context, MaterialPageRoute(builder: (_) => HomePage()));
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0xFF60BC2B),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30)),
                     padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
                   ),
-                  child: const Text('SAVE', style: TextStyle(color: Colors.white)),
+                  child:
+                      const Text('SAVE', style: TextStyle(color: Colors.white)),
                 ),
               )
             ],
@@ -178,7 +183,8 @@ class _AddPageState extends State<AddPage> {
 
   Widget _navIcon(IconData icon, int index) {
     return IconButton(
-      icon: Icon(icon, color: _selectedIndex == index ? Color(0xFF60BC2B) : Colors.black),
+      icon: Icon(icon,
+          color: _selectedIndex == index ? Color(0xFF60BC2B) : Colors.black),
       onPressed: () => _onItemTapped(index),
     );
   }

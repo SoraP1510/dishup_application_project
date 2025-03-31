@@ -57,7 +57,6 @@ class _SettingPageState extends State<SettingPage> {
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,16 +65,19 @@ class _SettingPageState extends State<SettingPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Icon(Icons.account_circle, size: 28),
-                  Text('DishUp', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                  Text('DishUp',
+                      style:
+                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                   Icon(Icons.notifications, size: 24),
                 ],
               ),
               const SizedBox(height: 30),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Notification', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  const Text('Notification',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   Switch(
                     value: _notificationEnabled,
                     onChanged: (value) {
@@ -88,20 +90,20 @@ class _SettingPageState extends State<SettingPage> {
                 ],
               ),
               const SizedBox(height: 20),
-
-              const Text('FAQ / Help Center', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const Text('FAQ / Help Center',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 20),
-
               GestureDetector(
                 onTap: _logout,
                 child: const Text(
                   'Log out',
-                  style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16),
+                  style: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16),
                 ),
               ),
-
               const Spacer(),
-
               const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -138,7 +140,8 @@ class _SettingPageState extends State<SettingPage> {
 
   Widget _navIcon(IconData icon, int index) {
     return IconButton(
-      icon: Icon(icon, color: _selectedIndex == index ? Color(0xFF60BC2B) : Colors.black),
+      icon: Icon(icon,
+          color: _selectedIndex == index ? Color(0xFF60BC2B) : Colors.black),
       onPressed: () => _onItemTapped(index),
     );
   }

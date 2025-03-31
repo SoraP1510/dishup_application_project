@@ -49,7 +49,6 @@ class _HomePageState extends State<HomePage> {
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15),
@@ -137,16 +136,14 @@ class _HomePageState extends State<HomePage> {
             children: [
               IconButton(
                 icon: Icon(Icons.home,
-                    color: _selectedIndex == 0
-                        ? Color(0xFF60BC2B)
-                        : Colors.black),
+                    color:
+                        _selectedIndex == 0 ? Color(0xFF60BC2B) : Colors.black),
                 onPressed: () => _onItemTapped(0),
               ),
               IconButton(
                 icon: Icon(Icons.calendar_month,
-                    color: _selectedIndex == 1
-                        ? Color(0xFF60BC2B)
-                        : Colors.black),
+                    color:
+                        _selectedIndex == 1 ? Color(0xFF60BC2B) : Colors.black),
                 onPressed: () => _onItemTapped(1),
               ),
               Container(
@@ -164,16 +161,14 @@ class _HomePageState extends State<HomePage> {
               ),
               IconButton(
                 icon: Icon(Icons.monitor_heart,
-                    color: _selectedIndex == 3
-                        ? Color(0xFF60BC2B)
-                        : Colors.black),
+                    color:
+                        _selectedIndex == 3 ? Color(0xFF60BC2B) : Colors.black),
                 onPressed: () => _onItemTapped(3),
               ),
               IconButton(
                 icon: Icon(Icons.settings,
-                    color: _selectedIndex == 4
-                        ? Color(0xFF60BC2B)
-                        : Colors.black),
+                    color:
+                        _selectedIndex == 4 ? Color(0xFF60BC2B) : Colors.black),
                 onPressed: () => _onItemTapped(4),
               ),
             ],

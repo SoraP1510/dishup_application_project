@@ -29,6 +29,8 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
 
+  uuid: ^4.0.0  
+  http: ^1.0.0
   google_fonts: ^6.1.0
   table_calendar: ^3.0.9
 

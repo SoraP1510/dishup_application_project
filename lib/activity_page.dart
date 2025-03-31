@@ -49,7 +49,6 @@ class _ActivityPageState extends State<ActivityPage> {
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,31 +57,34 @@ class _ActivityPageState extends State<ActivityPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Icon(Icons.account_circle, size: 28),
-                  Text('DishUp', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                  Text('DishUp',
+                      style:
+                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                   Icon(Icons.notifications, size: 24),
                 ],
               ),
               const SizedBox(height: 20),
-
               const Text('ACTIVITY'),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
                 value: _selectedActivity,
-                items: ['นอน', 'ออกกำลังกาย'].map((activity) => DropdownMenuItem(
-                  value: activity,
-                  child: Text(activity),
-                )).toList(),
+                items: ['นอน', 'ออกกำลังกาย']
+                    .map((activity) => DropdownMenuItem(
+                          value: activity,
+                          child: Text(activity),
+                        ))
+                    .toList(),
                 onChanged: (value) {
                   setState(() {
                     _selectedActivity = value;
                   });
                 },
                 decoration: InputDecoration(
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
               const SizedBox(height: 20),
-
               const Text('TIME (ชั่วโมง)'),
               const SizedBox(height: 6),
               TextField(
@@ -90,28 +92,32 @@ class _ActivityPageState extends State<ActivityPage> {
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   hintText: 'Hours',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
               const SizedBox(height: 30),
-
               Center(
                 child: ElevatedButton(
                   onPressed: () {
-                    print("กิจกรรม: $_selectedActivity, เวลา: ${_hourController.text}");
+                    print(
+                        "กิจกรรม: $_selectedActivity, เวลา: ${_hourController.text}");
 
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('บันทึกกิจกรรมเรียบร้อย')),
                     );
 
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomePage()));
+                    Navigator.pushReplacement(
+                        context, MaterialPageRoute(builder: (_) => HomePage()));
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0xFF60BC2B),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30)),
                     padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
                   ),
-                  child: const Text('SAVE', style: TextStyle(color: Colors.white)),
+                  child:
+                      const Text('SAVE', style: TextStyle(color: Colors.white)),
                 ),
               )
             ],
@@ -143,7 +149,8 @@ class _ActivityPageState extends State<ActivityPage> {
 
   Widget _navIcon(IconData icon, int index) {
     return IconButton(
-      icon: Icon(icon, color: _selectedIndex == index ? Color(0xFF60BC2B) : Colors.black),
+      icon: Icon(icon,
+          color: _selectedIndex == index ? Color(0xFF60BC2B) : Colors.black),
       onPressed: () => _onItemTapped(index),
     );
   }
