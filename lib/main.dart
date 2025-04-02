@@ -1,4 +1,3 @@
-import 'package:dishup_application/welcome_page.dart';
 import 'package:dishup_application/home_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +22,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'DishUp',
-      home: loggedIn ? const HomePage() : const WelcomePage(),
+      home: loggedIn ? const HomePage() : const HomePage(),
     );
   }
 }

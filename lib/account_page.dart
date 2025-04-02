@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import './widgets/static_top_bar.dart';
 import 'country_list.dart';
 
 class AccountPage extends StatefulWidget {
@@ -20,6 +19,7 @@ class _AccountPageState extends State<AccountPage> {
   final TextEditingController weightController = TextEditingController();
   final TextEditingController heightController = TextEditingController();
   final TextEditingController avatarUrlController = TextEditingController();
+
   String selectedCountry = 'Thailand';
   String? userId;
   String? avatarUrl;
@@ -33,12 +33,10 @@ class _AccountPageState extends State<AccountPage> {
   Future<void> _loadUserProfile() async {
     final prefs = await SharedPreferences.getInstance();
     userId = prefs.getString('userId');
-
     if (userId == null) return;
 
     final uri = Uri.parse('http://10.0.2.2:3000/api/profile/$userId');
     final response = await http.get(uri);
-
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       setState(() {
@@ -51,8 +49,6 @@ class _AccountPageState extends State<AccountPage> {
         selectedCountry = data['country'] ?? 'Thailand';
         avatarUrl = data['avatar_url'];
       });
-    } else {
-      print('Error loading profile: ${response.body}');
     }
   }
 
@@ -79,11 +75,8 @@ class _AccountPageState extends State<AccountPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Profile updated successfully')),
       );
-
-      // Wait a second for the user to see the message
       await Future.delayed(const Duration(milliseconds: 500));
-
-      Navigator.pop(context, 'refresh'); // 👈 this returns to caller
+      Navigator.pop(context, 'refresh');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${response.body}')),
@@ -96,86 +89,120 @@ class _AccountPageState extends State<AccountPage> {
     return Scaffold(
       backgroundColor: Colors.grey[850],
       body: SafeArea(
-        child: Container(
-          decoration: const BoxDecoration(color: Colors.white),
-          padding: const EdgeInsets.fromLTRB(20, 18, 18, 0),
-          child: Column(
-            children: [
-              const StaticTopBar(),
-              const SizedBox(height: 10),
-
-              // Profile picture with avatarUrl
-              Stack(
-                alignment: Alignment.bottomRight,
-                children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundImage: avatarUrl != null && avatarUrl!.isNotEmpty
-                        ? NetworkImage(avatarUrl!)
-                        : const AssetImage('assets/images/user.jpg')
-                            as ImageProvider,
-                    backgroundColor: Colors.grey[200],
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 4,
-                    child: GestureDetector(
-                      onTap: _promptAvatarUrl,
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Container(
+                    decoration: const BoxDecoration(color: Colors.white),
+                    padding: const EdgeInsets.fromLTRB(20, 18, 18, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.arrow_back),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                              ),
+                              const Text(
+                                'DishUp',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.notifications),
+                                onPressed: () {},
+                              ),
+                            ],
+                          ),
                         ),
-                        padding: const EdgeInsets.all(4),
-                        child: const Icon(Icons.camera_alt, size: 18),
-                      ),
+                        Center(
+                          child: Stack(
+                            alignment: Alignment.bottomRight,
+                            children: [
+                              CircleAvatar(
+                                radius: 50,
+                                backgroundImage: avatarUrl != null && avatarUrl!.isNotEmpty
+                                    ? NetworkImage(avatarUrl!)
+                                    : const AssetImage('assets/images/user.jpg')
+                                        as ImageProvider,
+                                backgroundColor: Colors.grey[200],
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                right: 4,
+                                child: GestureDetector(
+                                  onTap: _promptAvatarUrl,
+                                  child: Container(
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.white,
+                                    ),
+                                    padding: const EdgeInsets.all(4),
+                                    child: const Icon(Icons.camera_alt, size: 18),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        _label("Username"),
+                        _inputField(nameController),
+                        const SizedBox(height: 12),
+                        _label("Email"),
+                        _inputField(emailController),
+                        const SizedBox(height: 12),
+                        _label("Password"),
+                        _inputField(passwordController, obscure: true),
+                        const SizedBox(height: 12),
+                        _label("Age"),
+                        _inputField(ageController, inputType: TextInputType.number),
+                        const SizedBox(height: 12),
+                        _label("Weight (kg)"),
+                        _inputField(weightController, inputType: TextInputType.number),
+                        const SizedBox(height: 12),
+                        _label("Height (cm)"),
+                        _inputField(heightController, inputType: TextInputType.number),
+                        const SizedBox(height: 12),
+                        _label("Country/Region"),
+                        _countryDropdown(),
+                        const Spacer(),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: _saveProfile,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF6DDC5A),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                            ),
+                            child: const Text(
+                              'SAVE',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white,),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-
-              _label("Username"),
-              _inputField(nameController),
-              const SizedBox(height: 12),
-              _label("Email"),
-              _inputField(emailController),
-              const SizedBox(height: 12),
-              _label("Password"),
-              _inputField(passwordController, obscure: true),
-              const SizedBox(height: 12),
-              _label("Age"),
-              _inputField(ageController, inputType: TextInputType.number),
-              const SizedBox(height: 12),
-              _label("Weight (kg)"),
-              _inputField(weightController, inputType: TextInputType.number),
-              const SizedBox(height: 12),
-              _label("Height (cm)"),
-              _inputField(heightController, inputType: TextInputType.number),
-              const SizedBox(height: 12),
-              _label("Country/Region"),
-              _countryDropdown(),
-              const SizedBox(height: 30),
-
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _saveProfile,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6DDC5A),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                  child: const Text(
-                    'SAVE',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ),
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
@@ -185,9 +212,10 @@ class _AccountPageState extends State<AccountPage> {
         alignment: Alignment.centerLeft,
         child: Padding(
           padding: const EdgeInsets.only(bottom: 5),
-          child: Text(text,
-              style:
-                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+          child: Text(
+            text,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+          ),
         ),
       );
 
@@ -213,19 +241,17 @@ class _AccountPageState extends State<AccountPage> {
 
   void _promptAvatarUrl() async {
     avatarUrlController.text = avatarUrl ?? '';
-
-    final result = await showDialog<String>(
+    await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Enter Image URL'),
         content: TextField(
           controller: avatarUrlController,
-          decoration:
-              const InputDecoration(hintText: 'https://example.com/avatar.jpg'),
+          decoration: const InputDecoration(hintText: 'https://example.com/avatar.jpg'),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context), // cancel
+            onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
           TextButton(
@@ -268,4 +294,20 @@ class _AccountPageState extends State<AccountPage> {
       ),
     );
   }
+}
+
+
+class SlidePageRoute<T> extends PageRouteBuilder<T> {
+  final Widget page;
+  SlidePageRoute({required this.page})
+      : super(
+          pageBuilder: (_, __, ___) => page,
+          transitionsBuilder: (_, animation, __, child) {
+            const begin = Offset(1.0, 0.0);
+            const end = Offset.zero;
+            final tween = Tween(begin: begin, end: end)
+                .chain(CurveTween(curve: Curves.easeInOut));
+            return SlideTransition(position: animation.drive(tween), child: child);
+          },
+        );
 }
