@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class StaticTopBar extends StatefulWidget {
-  const StaticTopBar({super.key, required bool showBackButton});
+  const StaticTopBar({super.key});
 
   @override
   State<StaticTopBar> createState() => _StaticTopBarState();

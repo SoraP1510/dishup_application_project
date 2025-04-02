@@ -9,7 +9,6 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   ssl: {
-    // This is required for TiDB Cloud
     rejectUnauthorized: true,
   },
   waitForConnections: true,
