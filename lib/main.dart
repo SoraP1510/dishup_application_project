@@ -1,28 +1,29 @@
 import 'package:dishup_application/welcome_page.dart';
+import 'package:dishup_application/home_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'home_page.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  final loggedIn = prefs.getBool('loggedIn') ?? false;
+
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-  runApp(const DishUpApp());
+  runApp(MyApp(loggedIn: loggedIn));
 }
 
-class DishUpApp extends StatelessWidget {
-  const DishUpApp({super.key});
+class MyApp extends StatelessWidget {
+  final bool loggedIn;
+
+  const MyApp({super.key, required this.loggedIn});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'DishUp',
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-        scaffoldBackgroundColor: Colors.grey[850],
-        fontFamily: 'Arial',
-      ),
-      home: WelcomePage(),
+      home: loggedIn ? const HomePage() : const WelcomePage(),
     );
   }
 }

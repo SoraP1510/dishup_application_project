@@ -4,6 +4,8 @@ import 'calendar_page.dart';
 import 'add_page.dart';
 import 'activity_page.dart';
 import 'welcome_page.dart';
+import 'widgets/static_top_bar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingPage extends StatefulWidget {
   const SettingPage({super.key});
@@ -40,11 +42,13 @@ class _SettingPageState extends State<SettingPage> {
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
   }
 
-  void _logout() {
+  void _logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (_) => WelcomePage()),
-      (route) => false,
+      MaterialPageRoute(builder: (_) => const WelcomePage()),
+      (route) => false, // clear stack
     );
   }
 
@@ -61,16 +65,7 @@ class _SettingPageState extends State<SettingPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Icon(Icons.account_circle, size: 28),
-                  Text('DishUp',
-                      style:
-                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                  Icon(Icons.notifications, size: 24),
-                ],
-              ),
+              StaticTopBar(),
               const SizedBox(height: 30),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

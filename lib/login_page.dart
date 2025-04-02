@@ -1,10 +1,74 @@
 import 'package:dishup_application/welcome_page.dart';
+import 'package:dishup_application/signup_page.dart';
 import 'package:flutter/material.dart';
-import 'signup_page.dart';
 import 'package:flutter/gestures.dart';
+import 'package:http/http.dart' as http;
+import 'home_page.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+
+  Future<void> handleLogin() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter both email and password")),
+      );
+      return;
+    }
+
+    final url = Uri.parse(
+        'http://10.0.2.2:3000/api/login'); // 👈 Replace with your server IP if needed
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': password}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final user = data['user'];
+
+        // 🔐 Save user info locally
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('userId', user['id']);
+        await prefs.setString('userEmail', user['email']);
+        await prefs.setString('userName', user['fullname']);
+        await prefs.setBool('loggedIn', true);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("✅ Login successful")),
+        );
+        // Navigate to home page
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("❌ Login failed: ${response.body}")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,43 +76,27 @@ class LoginPage extends StatelessWidget {
       backgroundColor: Colors.grey[850],
       body: SafeArea(
         child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-          ),
+          decoration: const BoxDecoration(color: Colors.white),
           padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 25),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Back Button
               IconButton(
                   icon: const Icon(Icons.arrow_back),
-                  onPressed: () => Navigator.push(
+                  onPressed: () => Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
                             builder: (context) => const WelcomePage()),
                       )),
               const SizedBox(height: 10),
-
-              // Login Text
-              const Text(
-                'LOGIN',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              const Text('LOGIN',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
               const SizedBox(height: 5),
-              const Text(
-                'Please sign in to continue.',
-                style: TextStyle(fontSize: 14, color: Colors.black54),
-              ),
+              const Text('Please sign in to continue.',
+                  style: TextStyle(fontSize: 14, color: Colors.black54)),
               const SizedBox(height: 30),
-
-              // Email Field
-              const Text(
-                'EMAIL',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-              ),
+              const Text('EMAIL',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
               const SizedBox(height: 8),
               Container(
                 decoration: BoxDecoration(
@@ -63,23 +111,21 @@ class LoginPage extends StatelessWidget {
                   color: Colors.white,
                 ),
                 child: TextField(
+                  controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     hintText: 'Email',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide.none,
                     ),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   ),
                 ),
               ),
               const SizedBox(height: 25),
-
-              // Password Field
-              const Text(
-                'PASSWORD',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-              ),
+              const Text('PASSWORD',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
               const SizedBox(height: 8),
               Stack(
                 alignment: Alignment.centerRight,
@@ -97,6 +143,7 @@ class LoginPage extends StatelessWidget {
                       color: Colors.white,
                     ),
                     child: TextField(
+                      controller: passwordController,
                       obscureText: true,
                       decoration: InputDecoration(
                         hintText: 'Password',
@@ -104,7 +151,8 @@ class LoginPage extends StatelessWidget {
                           borderRadius: BorderRadius.circular(10),
                           borderSide: BorderSide.none,
                         ),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 16),
                       ),
                     ),
                   ),
@@ -121,13 +169,10 @@ class LoginPage extends StatelessWidget {
                   )
                 ],
               ),
-
               const SizedBox(height: 40),
-
-              // Login Button
               Center(
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: handleLogin,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 50, vertical: 14),
@@ -153,10 +198,7 @@ class LoginPage extends StatelessWidget {
                   ),
                 ),
               ),
-
               const Spacer(),
-
-              // Bottom Text
               Center(
                 child: RichText(
                   text: TextSpan(
@@ -171,7 +213,7 @@ class LoginPage extends StatelessWidget {
                         ),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
-                            Navigator.push(
+                            Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
                                   builder: (context) => const SignUpPage()),

@@ -4,6 +4,7 @@ import 'home_page.dart';
 import 'add_page.dart';
 import 'activity_page.dart';
 import 'setting_page.dart';
+import 'widgets/static_top_bar.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -53,16 +54,7 @@ class _CalendarPageState extends State<CalendarPage> {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Icon(Icons.account_circle, size: 28),
-                  Text('DishUp',
-                      style:
-                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                  Icon(Icons.notifications, size: 24),
-                ],
-              ),
+              StaticTopBar(),
               const SizedBox(height: 20),
               TableCalendar(
                 firstDay: DateTime.utc(2020, 1, 1),

@@ -3,6 +3,7 @@ import 'home_page.dart';
 import 'calendar_page.dart';
 import 'add_page.dart';
 import 'setting_page.dart';
+import 'widgets/static_top_bar.dart';
 
 class ActivityPage extends StatefulWidget {
   const ActivityPage({super.key});
@@ -53,16 +54,7 @@ class _ActivityPageState extends State<ActivityPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Icon(Icons.account_circle, size: 28),
-                  Text('DishUp',
-                      style:
-                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                  Icon(Icons.notifications, size: 24),
-                ],
-              ),
+              StaticTopBar(),
               const SizedBox(height: 20),
               const Text('ACTIVITY'),
               const SizedBox(height: 6),
