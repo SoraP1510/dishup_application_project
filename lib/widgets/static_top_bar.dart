@@ -3,6 +3,7 @@ import 'package:dishup_application/account_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class StaticTopBar extends StatefulWidget {
   const StaticTopBar({super.key});
@@ -29,7 +30,9 @@ class _StaticTopBarState extends State<StaticTopBar> {
 
     if (userId == null) return;
 
-    final uri = Uri.parse('http://10.0.2.2:3000/api/profile/$userId');
+    final baseUrl = dotenv.env['BASE_URL']!;
+
+    final uri = Uri.parse('$baseUrl/api/profile/$userId');
     final response = await http.get(uri);
 
     if (response.statusCode == 200) {

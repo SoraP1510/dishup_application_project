@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import './widgets/static_top_bar.dart';
 import 'country_list.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
@@ -36,7 +37,8 @@ class _AccountPageState extends State<AccountPage> {
 
     if (userId == null) return;
 
-    final uri = Uri.parse('http://10.0.2.2:3000/api/profile/$userId');
+    final baseUrl = dotenv.env['BASE_URL']!;
+    final uri = Uri.parse('$baseUrl/api/profile/$userId');
     final response = await http.get(uri);
 
     if (response.statusCode == 200) {

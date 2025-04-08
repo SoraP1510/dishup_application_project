@@ -13,6 +13,10 @@ const pool = mysql.createPool({
   },
   waitForConnections: true,
   connectionLimit: 10,
+  connectTimeout: 10000,           // 10s timeout for initial connect
+  enableKeepAlive: true,           // ✅ keep socket alive
+  keepAliveInitialDelay: 10000     // wait 10s before ping
+  //Let's see if it works or not
 });
 
 module.exports = pool;

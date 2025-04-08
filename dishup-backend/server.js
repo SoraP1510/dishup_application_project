@@ -110,6 +110,68 @@ app.put('/api/profile/:id', async (req, res) => {
   }
 });
 
+//meals
+app.post('/api/meals', async (req, res) => {
+  const { id, user_id, name, type, portion, energy, timestamp } = req.body;
+
+  try {
+    await db.query(`
+      INSERT INTO meals (id, user_id, name, type, portion, energy, timestamp)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `, [id, user_id, name, type, portion, energy, timestamp]);
+
+    res.status(201).json({ message: 'Meal added successfully' });
+  } catch (err) {
+    console.error('Insert meal error:', err);
+    res.status(500).json({ error: 'Failed to insert meal' });
+  }
+});
+
+//activities
+app.post('/api/activities', async (req, res) => {
+  const {
+    id,
+    user_id,
+    activity_type,
+    description,
+    duration_minutes,
+    timestamp,
+    sleep_time,
+    wake_time,
+    cal_burned
+  } = req.body;
+
+  try {
+    await db.query(`
+      INSERT INTO activities (
+        id,
+        user_id,
+        activity_type,
+        description,
+        duration_minutes,
+        timestamp,
+        sleep_time,
+        wake_time,
+        cal_burned
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
+      id,
+      user_id,
+      activity_type,
+      description,
+      duration_minutes,
+      timestamp,
+      sleep_time || null,
+      wake_time || null,
+      cal_burned || null
+    ]);
+
+    res.status(201).json({ message: 'Activity saved successfully' });
+  } catch (err) {
+    console.error('Insert activity error:', err);
+    res.status(500).json({ error: 'Failed to save activity' });
+  }
+});
 
 
 const PORT = process.env.PORT || 3000;

@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:uuid/uuid.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class CreateInfoPage extends StatefulWidget {
   final String fullName;
@@ -134,8 +135,8 @@ class _CreateInfoPageState extends State<CreateInfoPage> {
                       );
                       return;
                     }
-
-                    final url = Uri.parse('http://10.0.2.2:3000/api/signup');
+                    final baseUrl = dotenv.env['BASE_URL']!;
+                    final url = Uri.parse('$baseUrl/api/signup');
 
                     final response = await http.post(
                       url,
@@ -157,9 +158,8 @@ class _CreateInfoPageState extends State<CreateInfoPage> {
 
                     if (response.statusCode == 201) {
                       final prefs = await SharedPreferences.getInstance();
-                      await prefs.setBool('loggedIn', true); 
-                      await prefs.setString(
-                          'userId', uuid); 
+                      await prefs.setBool('loggedIn', true);
+                      await prefs.setString('userId', uuid);
 
                       Navigator.pushReplacement(
                         context,

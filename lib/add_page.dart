@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'models/meal.dart';
+import 'package:http/http.dart' as http;
+import 'package:uuid/uuid.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AddPage extends StatefulWidget {
   final Meal? existingMeal; // ✅ ใช้สำหรับแก้ไข
@@ -15,6 +20,7 @@ class _AddPageState extends State<AddPage> {
   final _menuController = TextEditingController();
   final _kcalController = TextEditingController();
   final _portionController = TextEditingController();
+  DateTime? _selectedDateTime;
 
   @override
   void initState() {
@@ -46,11 +52,12 @@ class _AddPageState extends State<AddPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 20),
-              const Text('MEAL', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text('MEAL',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 value: _mealType,
-                items: ['Breakfast','Lunch','Dinner','Snack','Drink']
+                items: ['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Drink']
                     .map((type) => DropdownMenuItem(
                           value: type,
                           child: Text(type),
@@ -62,66 +69,169 @@ class _AddPageState extends State<AddPage> {
                   });
                 },
                 decoration: InputDecoration(
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
               const SizedBox(height: 20),
-              const Text('MENU', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('NAME', style: TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 6),
               TextField(
                 controller: _menuController,
                 decoration: InputDecoration(
-                  hintText: 'Menu',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  hintText: 'Name',
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
               const SizedBox(height: 20),
-
-              if (_mealType != 'Drink') ...[
-                const Text('Calorie', style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 6),
-                TextField(
-                  controller: _kcalController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    hintText: 'Kcal',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+              const Text('Calorie',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 6),
+              TextField(
+                controller: _kcalController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  hintText: 'Enter calorie',
+                  suffixText: 'Kcal',
+                  suffixStyle: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                const SizedBox(height: 20),
-              ],
-
-              const Text('PORTION', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+              const SizedBox(height: 20),
+              const Text('PORTION',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 6),
               TextField(
                 controller: _portionController,
+                keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  hintText: portionHint,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  hintText: 'Enter amount',
+                  suffixText: _mealType == 'Drink' ? 'glass' : 'grams',
+                  suffixStyle: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
               const SizedBox(height: 30),
+              const Text('DATE & TIME',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 6),
+              GestureDetector(
+                onTap: () async {
+                  final pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: _selectedDateTime ?? DateTime.now(),
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime(2100),
+                  );
+
+                  if (pickedDate != null) {
+                    final pickedTime = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.fromDateTime(
+                          _selectedDateTime ?? DateTime.now()),
+                    );
+
+                    if (pickedTime != null) {
+                      setState(() {
+                        _selectedDateTime = DateTime(
+                          pickedDate.year,
+                          pickedDate.month,
+                          pickedDate.day,
+                          pickedTime.hour,
+                          pickedTime.minute,
+                        );
+                      });
+                    }
+                  }
+                },
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    _selectedDateTime != null
+                        ? '${_selectedDateTime!.toLocal()}'.split('.').first
+                        : 'Select date and time',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
               Center(
                 child: ElevatedButton(
-                  onPressed: () {
-                    final newMeal = Meal(
-                      type: _mealType ?? '',
-                      menu: _menuController.text,
-                      kcal: _mealType == 'Drink' ? '0' : _kcalController.text,
-                      portion: _portionController.text,
+                  onPressed: () async {
+                    if (_mealType == null ||
+                        _menuController.text.isEmpty ||
+                        _portionController.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('Please complete all fields')),
+                      );
+                      return;
+                    }
+
+                    final uuid = const Uuid().v4();
+                    final prefs = await SharedPreferences.getInstance();
+                    final userId = prefs.getString('userId');
+
+                    if (userId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('User not logged in')),
+                      );
+                      return;
+                    }
+
+                    final baseUrl = dotenv.env['BASE_URL']!;
+                    final response = await http.post(
+                      Uri.parse('$baseUrl/api/meals'),
+                      headers: {'Content-Type': 'application/json'},
+                      body: jsonEncode({
+                        'id': uuid,
+                        'user_id': userId,
+                        'name': _menuController.text,
+                        'type': _mealType!.toLowerCase(), // match enum format
+                        'portion': _portionController.text,
+                        'energy': _mealType == 'Drink'
+                            ? 0
+                            : int.tryParse(_kcalController.text) ?? 0,
+                        'timestamp': (_selectedDateTime ?? DateTime.now())
+                            .toIso8601String(),
+                      }),
                     );
-                    Navigator.pop(context, newMeal);
+
+                    if (response.statusCode == 201) {
+                      Navigator.pop(
+                          context, true); // ส่งสัญญาณให้หน้าเดิม refresh
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error: ${response.body}')),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF60BC2B),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 40, vertical: 12),
                   ),
-                  child: Text(widget.existingMeal != null ? 'SAVE CHANGES' : 'SAVE',
+                  child: Text(
+                      widget.existingMeal != null ? 'SAVE CHANGES' : 'SAVE',
                       style: const TextStyle(color: Colors.white)),
                 ),
               ),

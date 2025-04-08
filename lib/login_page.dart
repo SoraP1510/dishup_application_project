@@ -6,6 +6,8 @@ import 'package:http/http.dart' as http;
 import 'home_page.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -28,9 +30,9 @@ class _LoginPageState extends State<LoginPage> {
       );
       return;
     }
-
+    final baseUrl = dotenv.env['BASE_URL']!;
     final url = Uri.parse(
-        'http://10.0.2.2:3000/api/login'); // 👈 Replace with your server IP if needed
+        '$baseUrl/api/login'); 
 
     try {
       final response = await http.post(

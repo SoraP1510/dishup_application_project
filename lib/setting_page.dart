@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import 'welcome_page.dart';
 
 class SettingPage extends StatefulWidget {
@@ -22,6 +24,18 @@ class _SettingPageState extends State<SettingPage> {
       (route) => false,
     );
   }
+
+  Future<void> _openHelpCenter() async {
+  const url = 'https://www.youtube.com/watch?v=xvFZjo5PgG0';
+  final Uri uri = Uri.parse(url);
+
+  if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Couldn't launch Help Center")),
+    );
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -58,10 +72,13 @@ class _SettingPageState extends State<SettingPage> {
                         ],
                       ),
                       const SizedBox(height: 20),
-                      const Text(
-                        'FAQ / Help Center',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
+                      GestureDetector(
+                        onTap: _openHelpCenter,
+                        child: const Text(
+                          'FAQ / Help Center',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
                       ),
                       const SizedBox(height: 20),
                       GestureDetector(
@@ -80,8 +97,7 @@ class _SettingPageState extends State<SettingPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text('App Version', style: TextStyle(fontSize: 14)),
-                          Text('0.0.1 (Beta)',
-                              style: TextStyle(fontSize: 14)),
+                          Text('0.0.1 (Beta)', style: TextStyle(fontSize: 14)),
                         ],
                       ),
                       const SizedBox(height: 20),

@@ -3,6 +3,7 @@ import 'package:dishup_application/welcome_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -10,6 +11,7 @@ void main() async {
   final loggedIn = prefs.getBool('loggedIn') ?? false;
 
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  await dotenv.load(); 
   runApp(MyApp(loggedIn: loggedIn));
 }
 

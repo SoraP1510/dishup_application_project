@@ -4,6 +4,7 @@ import 'package:dishup_application/welcome_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 
+
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
 
