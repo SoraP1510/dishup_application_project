@@ -127,6 +127,56 @@ app.post('/api/meals', async (req, res) => {
   }
 });
 
+app.get('/api/meals/day', async (req, res) => {
+  const { user_id, start, end } = req.query;
+
+  try {
+    const [rows] = await db.query(
+      `SELECT * FROM meals WHERE user_id = ? AND timestamp BETWEEN ? AND ? ORDER BY timestamp ASC`,
+      [user_id, start, end]
+    );
+
+    res.status(200).json(rows);
+  } catch (err) {
+    console.error('Fetch meals by day error:', err);
+    res.status(500).json({ error: 'Failed to fetch meals' });
+  }
+});
+
+// Update meal
+app.put('/api/meals/:id', async (req, res) => {
+  const { name, type, portion, energy, timestamp } = req.body;
+  const { id } = req.params;
+
+  try {
+    await db.query(
+      `UPDATE meals SET name=?, type=?, portion=?, energy=?, timestamp=? WHERE id=?`,
+      [name, type, portion, energy, timestamp, id]
+    );
+    res.status(200).json({ message: 'Meal updated' });
+  } catch (err) {
+    console.error('Update meal error:', err);
+    res.status(500).json({ error: 'Failed to update meal' });
+  }
+});
+
+// Delete meal
+app.delete('/api/meals/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await db.query(`DELETE FROM meals WHERE id = ?`, [id]);
+    res.status(200).json({ message: 'Meal deleted' });
+  } catch (err) {
+    console.error('Delete meal error:', err);
+    res.status(500).json({ error: 'Failed to delete meal' });
+  }
+});
+
+
+
+
+
 //activities
 app.post('/api/activities', async (req, res) => {
   const {
@@ -172,6 +222,32 @@ app.post('/api/activities', async (req, res) => {
     res.status(500).json({ error: 'Failed to save activity' });
   }
 });
+
+app.get('/api/activities/day', async (req, res) => {
+  const { user_id, start, end } = req.query;
+
+  try {
+    const [rows] = await db.query(
+      `SELECT * FROM activities WHERE user_id = ? AND timestamp BETWEEN ? AND ? ORDER BY timestamp ASC`,
+      [user_id, start, end]
+    );
+
+    res.status(200).json(rows);
+  } catch (err) {
+    console.error('Fetch activities by day error:', err);
+    res.status(500).json({ error: 'Failed to fetch activities' });
+  }
+});
+
+app.delete('/api/activities/:id', async (req, res) => {
+  try {
+    await db.query('DELETE FROM activities WHERE id = ?', [req.params.id]);
+    res.status(200).json({ message: 'Activity deleted' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete activity' });
+  }
+});
+
 
 
 const PORT = process.env.PORT || 3000;

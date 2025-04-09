@@ -7,6 +7,10 @@ import 'models/meal.dart';
 import 'models/activity.dart';
 import 'goal_page.dart';
 import 'widgets/static_top_bar.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -22,6 +26,40 @@ class _HomePageState extends State<HomePage> {
 
   Map<DateTime, List<Meal>> mealsPerDay = {};
   Map<DateTime, List<Activity>> activitiesPerDay = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchMealsFromBackend();
+  }
+
+  Future<void> _fetchMealsFromBackend() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('userId');
+    if (userId == null) return;
+
+    final baseUrl = dotenv.env['BASE_URL']!;
+    final response =
+        await http.get(Uri.parse('$baseUrl/api/meals?user_id=$userId'));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+
+      List<Meal> loadedMeals = data.map((json) => Meal.fromJson(json)).toList();
+
+      final Map<DateTime, List<Meal>> mapped = {};
+      for (var meal in loadedMeals) {
+        final key = DateTime(
+            meal.timestamp.year, meal.timestamp.month, meal.timestamp.day);
+        mapped.putIfAbsent(key, () => []).add(meal);
+      }
+
+      setState(() {
+        _meals = loadedMeals;
+        mealsPerDay = mapped;
+      });
+    }
+  }
 
   void _updateGoalKcal(int newGoal) {
     setState(() {
@@ -40,14 +78,21 @@ class _HomePageState extends State<HomePage> {
         context,
         MaterialPageRoute(builder: (_) => const AddPage()),
       );
+
       if (result != null && result is Meal) {
-        final now = DateTime.now();
-        final dayKey = DateTime(now.year, now.month, now.day);
+        final dateKey = DateTime(
+          result.timestamp.year,
+          result.timestamp.month,
+          result.timestamp.day,
+        );
 
         setState(() {
           _meals.add(result);
-          mealsPerDay.putIfAbsent(dayKey, () => []);
-          mealsPerDay[dayKey]!.add(result);
+
+          // อัปเดต mealsPerDay
+          mealsPerDay.putIfAbsent(dateKey, () => []);
+          mealsPerDay[dateKey]!.add(result);
+
           _selectedIndex = 0;
         });
       }
@@ -75,25 +120,44 @@ class _HomePageState extends State<HomePage> {
             _updateGoalKcal(result);
           }
         },
-        onEditMeal: (oldMeal) async {
+        onEditMeal: (editedMeal) async {
           final result = await Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => AddPage(existingMeal: oldMeal)),
+            MaterialPageRoute(
+                builder: (_) => AddPage(existingMeal: editedMeal)),
           );
+
           if (result != null && result is Meal) {
-            setState(() {
-              final index = _meals.indexOf(oldMeal);
-              if (index != -1) _meals[index] = result;
-            });
+            final index = _meals.indexWhere((m) => m.id == editedMeal.id);
+            if (index != -1) {
+              setState(() {
+                _meals[index] = result;
+
+                final oldDateKey = DateTime(editedMeal.timestamp.year,
+                    editedMeal.timestamp.month, editedMeal.timestamp.day);
+                final newDateKey = DateTime(result.timestamp.year,
+                    result.timestamp.month, result.timestamp.day);
+
+                mealsPerDay[oldDateKey]
+                    ?.removeWhere((m) => m.id == editedMeal.id);
+                mealsPerDay.putIfAbsent(newDateKey, () => []).add(result);
+              });
+            }
           }
         },
         onDeleteMeal: (meal) {
-          setState(() => _meals.remove(meal));
+          setState(() {
+            _meals.remove(meal);
+            final dateKey = DateTime(
+                meal.timestamp.year, meal.timestamp.month, meal.timestamp.day);
+            mealsPerDay[dateKey]?.remove(meal);
+          });
         },
         onEditActivity: (oldAct) async {
           final result = await Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => ActivityPage(existingActivity: oldAct)),
+            MaterialPageRoute(
+                builder: (_) => ActivityPage(existingActivity: oldAct)),
           );
           if (result != null && result is Activity) {
             setState(() {
@@ -107,15 +171,13 @@ class _HomePageState extends State<HomePage> {
         },
       ),
       CalendarPage(
-        mealsPerDay: mealsPerDay,
-        activitiesPerDay: activitiesPerDay,
         onEditMeal: (_) {},
         onDeleteMeal: (_) {},
         onEditActivity: (_) {},
         onDeleteActivity: (_) {},
       ),
       const AddPage(),
-      const ActivityPage(), 
+      const ActivityPage(),
       const SettingPage(),
     ];
 
@@ -125,9 +187,10 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           children: [
             Padding(
-  padding: const EdgeInsets.only(top: 18.0, left: 16.0, right: 16.0),
-  child: const StaticTopBar(),
-),
+              padding:
+                  const EdgeInsets.only(top: 18.0, left: 16.0, right: 16.0),
+              child: const StaticTopBar(),
+            ),
             Expanded(
               child: IndexedStack(
                 index: _selectedIndex,
@@ -145,11 +208,17 @@ class _HomePageState extends State<HomePage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
-                icon: Icon(Icons.home, color: _selectedIndex == 0 ? const Color(0xFF60BC2B) : Colors.black),
+                icon: Icon(Icons.home,
+                    color: _selectedIndex == 0
+                        ? const Color(0xFF60BC2B)
+                        : Colors.black),
                 onPressed: () => _onItemTapped(0),
               ),
               IconButton(
-                icon: Icon(Icons.calendar_month, color: _selectedIndex == 1 ? const Color(0xFF60BC2B) : Colors.black),
+                icon: Icon(Icons.calendar_month,
+                    color: _selectedIndex == 1
+                        ? const Color(0xFF60BC2B)
+                        : Colors.black),
                 onPressed: () => _onItemTapped(1),
               ),
               Container(
@@ -166,11 +235,17 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               IconButton(
-                icon: Icon(Icons.monitor_heart, color: _selectedIndex == 3 ? const Color(0xFF60BC2B) : Colors.black),
+                icon: Icon(Icons.monitor_heart,
+                    color: _selectedIndex == 3
+                        ? const Color(0xFF60BC2B)
+                        : Colors.black),
                 onPressed: () => _onItemTapped(3),
               ),
               IconButton(
-                icon: Icon(Icons.settings, color: _selectedIndex == 4 ? const Color(0xFF60BC2B) : Colors.black),
+                icon: Icon(Icons.settings,
+                    color: _selectedIndex == 4
+                        ? const Color(0xFF60BC2B)
+                        : Colors.black),
                 onPressed: () => _onItemTapped(4),
               ),
             ],
@@ -226,7 +301,8 @@ class _MainHomeContent extends StatelessWidget {
           onTap: onTapGoalCard,
           child: Card(
             elevation: 4,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -236,7 +312,8 @@ class _MainHomeContent extends StatelessWidget {
                   LinearProgressIndicator(
                     value: goalKcal == 0 ? 0 : totalKcal / goalKcal,
                     backgroundColor: Colors.grey[300],
-                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
+                    valueColor:
+                        const AlwaysStoppedAnimation<Color>(Colors.blue),
                     minHeight: 6,
                   ),
                   const SizedBox(height: 8),
@@ -268,7 +345,7 @@ class _MealCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(top: 15.0), 
+      margin: const EdgeInsets.only(top: 15.0),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.grey[300],
@@ -277,15 +354,19 @@ class _MealCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height:8),
+          Text(title,
+              style:
+                  const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
           if (meals.isEmpty)
             const Text('No meals yet')
           else
             ...meals.map((m) => Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(child: Text('${m.menu} (${m.kcal} kcal, ${m.portion})')),
+                    Expanded(
+                        child:
+                            Text('${m.menu} (${m.kcal} kcal, ${m.portion})')),
                     Row(
                       children: [
                         IconButton(
@@ -318,7 +399,7 @@ class _ActivityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(top: 15.0), 
+      margin: const EdgeInsets.only(top: 15.0),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.teal[100],
@@ -327,7 +408,8 @@ class _ActivityCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Activity', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const Text('Activity',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           if (activities.isEmpty)
             const Text('No activity yet')

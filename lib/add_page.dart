@@ -26,7 +26,8 @@ class _AddPageState extends State<AddPage> {
   void initState() {
     super.initState();
     if (widget.existingMeal != null) {
-      _mealType = widget.existingMeal!.type;
+      _mealType = widget.existingMeal!.type[0].toUpperCase() +
+          widget.existingMeal!.type.substring(1);
       _menuController.text = widget.existingMeal!.menu;
       _kcalController.text = widget.existingMeal!.kcal;
       _portionController.text = widget.existingMeal!.portion;
@@ -184,7 +185,6 @@ class _AddPageState extends State<AddPage> {
                       return;
                     }
 
-                    final uuid = const Uuid().v4();
                     final prefs = await SharedPreferences.getInstance();
                     final userId = prefs.getString('userId');
 
@@ -196,26 +196,47 @@ class _AddPageState extends State<AddPage> {
                     }
 
                     final baseUrl = dotenv.env['BASE_URL']!;
-                    final response = await http.post(
-                      Uri.parse('$baseUrl/api/meals'),
-                      headers: {'Content-Type': 'application/json'},
-                      body: jsonEncode({
-                        'id': uuid,
-                        'user_id': userId,
-                        'name': _menuController.text,
-                        'type': _mealType!.toLowerCase(), // match enum format
-                        'portion': _portionController.text,
-                        'energy': _mealType == 'Drink'
-                            ? 0
-                            : int.tryParse(_kcalController.text) ?? 0,
-                        'timestamp': (_selectedDateTime ?? DateTime.now())
-                            .toIso8601String(),
-                      }),
-                    );
+                    final mealId = widget.existingMeal?.id ?? const Uuid().v4();
 
-                    if (response.statusCode == 201) {
-                      Navigator.pop(
-                          context, true); // ส่งสัญญาณให้หน้าเดิม refresh
+                    final mealData = {
+                      'id': mealId,
+                      'user_id': userId,
+                      'name': _menuController.text,
+                      'type': _mealType!.toLowerCase(),
+                      'portion': _portionController.text,
+                      'energy': _mealType == 'Drink'
+                          ? 0
+                          : int.tryParse(_kcalController.text) ?? 0,
+                      'timestamp': (_selectedDateTime ?? DateTime.now())
+                          .toIso8601String(),
+                    };
+
+                    final url = widget.existingMeal == null
+                        ? Uri.parse('$baseUrl/api/meals')
+                        : Uri.parse(
+                            '$baseUrl/api/meals/${widget.existingMeal!.id}');
+
+                    final response = await (widget.existingMeal == null
+                        ? http.post(url,
+                            headers: {'Content-Type': 'application/json'},
+                            body: jsonEncode(mealData))
+                        : http.put(url,
+                            headers: {'Content-Type': 'application/json'},
+                            body: jsonEncode(mealData)));
+
+                    if (response.statusCode == 200 ||
+                        response.statusCode == 201) {
+                      final meal = Meal(
+                        id: mealId,
+                        userId: userId,
+                        menu: _menuController.text,
+                        kcal: _kcalController.text,
+                        type: _mealType!,
+                        portion: _portionController.text,
+                        timestamp: (_selectedDateTime ?? DateTime.now()),
+                      );
+
+                      Navigator.pop(context, meal);
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Error: ${response.body}')),

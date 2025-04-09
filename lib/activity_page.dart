@@ -20,6 +20,7 @@ class _ActivityPageState extends State<ActivityPage> {
   final _hourController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _caloriesController = TextEditingController();
+  DateTime? _sleepDate;
   bool _dontKnowCalories = false;
 
   String? _selectedActivity;
@@ -30,6 +31,10 @@ class _ActivityPageState extends State<ActivityPage> {
   void initState() {
     super.initState();
     _selectedActivity = widget.existingActivity?.type;
+    if (_selectedActivity != null) {
+      _selectedActivity = _selectedActivity![0].toUpperCase() +
+          _selectedActivity!.substring(1).toLowerCase();
+    }
     _hourController.text = widget.existingActivity?.hours ?? '';
     _descriptionController.text = widget.existingActivity?.description ?? '';
     _caloriesController.text = widget.existingActivity?.calories ?? '';
@@ -38,7 +43,6 @@ class _ActivityPageState extends State<ActivityPage> {
   @override
   Widget build(BuildContext context) {
     final isSleep = _selectedActivity == 'Sleep';
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -75,21 +79,28 @@ class _ActivityPageState extends State<ActivityPage> {
                 ),
               ),
               const SizedBox(height: 20),
-              if (_selectedActivity != 'Sleep') ...[
-                const Text('DESCRIPTION',
+              if (_selectedActivity == 'Sleep') ...[
+                const Text('SLEEP DATE',
                     style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 6),
-                TextField(
-                  controller: _descriptionController,
-                  decoration: InputDecoration(
-                    hintText: 'Description',
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
+                _buildDatePicker(
+                  label: 'Select sleep date',
+                  date: _sleepDate,
+                  onPressed: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2100),
+                    );
+                    if (picked != null) {
+                      setState(() => _sleepDate = picked);
+                    }
+                  },
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
               ],
-              if (!isSleep) ...[
+              if (_selectedActivity == "Exercise") ...[
                 const Text('CALORIES BURNED (ถ้ามี)',
                     style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 6),
@@ -148,19 +159,39 @@ class _ActivityPageState extends State<ActivityPage> {
                 ),
               ],
               if (isSleep) ...[
-                const Text('SLEEP TIME',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 6),
-                _buildTimePicker(
-                  label: 'Sleep time',
-                  time: _sleepStart,
-                  onPressed: () => _selectTime(context, true),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'SLEEP TIME',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(width: 110),
+                    const Text(
+                      'WAKE TIME',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 10),
-                _buildTimePicker(
-                  label: 'Wake up time',
-                  time: _sleepEnd,
-                  onPressed: () => _selectTime(context, false),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildTimePicker(
+                        label: 'Sleep time',
+                        time: _sleepStart,
+                        onPressed: () => _selectTime(context, true),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _buildTimePicker(
+                        label: 'Wake time',
+                        time: _sleepEnd,
+                        onPressed: () => _selectTime(context, false),
+                      ),
+                    ),
+                  ],
                 ),
               ],
               const SizedBox(height: 30),
@@ -206,12 +237,32 @@ class _ActivityPageState extends State<ActivityPage> {
                     if (_selectedActivity == 'Sleep' &&
                         _sleepStart != null &&
                         _sleepEnd != null) {
-                      final now = DateTime.now();
-                      final start = DateTime(now.year, now.month, now.day,
-                          _sleepStart!.hour, _sleepStart!.minute);
-                      final end = DateTime(now.year, now.month, now.day,
-                          _sleepEnd!.hour, _sleepEnd!.minute);
-                      final duration = end.difference(start);
+                      final now = _sleepDate ?? DateTime.now();
+                      final baseDate = _sleepDate ?? DateTime.now();
+                      DateTime sleepStartDateTime = DateTime(
+                        baseDate.year,
+                        baseDate.month,
+                        baseDate.day,
+                        _sleepStart!.hour,
+                        _sleepStart!.minute,
+                      );
+
+                      DateTime wakeTimeDateTime = DateTime(
+                        baseDate.year,
+                        baseDate.month,
+                        baseDate.day,
+                        _sleepEnd!.hour,
+                        _sleepEnd!.minute,
+                      );
+
+                      // Fix if sleeping across midnight
+                      if (wakeTimeDateTime.isBefore(sleepStartDateTime)) {
+                        wakeTimeDateTime =
+                            wakeTimeDateTime.add(const Duration(days: 1));
+                      }
+
+                      final duration =
+                          wakeTimeDateTime.difference(sleepStartDateTime);
                       minutes = duration.inMinutes.toString();
                       final hours =
                           (duration.inMinutes / 60).toStringAsFixed(2);
@@ -270,10 +321,13 @@ class _ActivityPageState extends State<ActivityPage> {
                         ],
                       ),
                     );
-
                     if (confirm != true) return;
 
+                    final uuid = const Uuid().v4();
+                    final id = widget.existingActivity?.id ?? uuid;
+
                     final activity = Activity(
+                      id: id,
                       type: _selectedActivity!,
                       hours: minutes,
                       description: _descriptionController.text,
@@ -282,7 +336,6 @@ class _ActivityPageState extends State<ActivityPage> {
                           : _caloriesController.text,
                     );
 
-                    final uuid = const Uuid().v4();
                     final prefs = await SharedPreferences.getInstance();
                     final userId = prefs.getString('userId');
                     if (userId == null) {
@@ -292,34 +345,37 @@ class _ActivityPageState extends State<ActivityPage> {
                       return;
                     }
 
-                    final now = DateTime.now();
+                    final DateTime now = DateTime.now();
                     DateTime? sleepStartDateTime;
                     DateTime? wakeTimeDateTime;
 
                     if (_selectedActivity == 'Sleep' &&
+                        _sleepDate != null &&
                         _sleepStart != null &&
                         _sleepEnd != null) {
                       sleepStartDateTime = DateTime(
-                        now.year,
-                        now.month,
-                        now.day,
+                        _sleepDate!.year,
+                        _sleepDate!.month,
+                        _sleepDate!.day,
                         _sleepStart!.hour,
                         _sleepStart!.minute,
                       );
+
                       wakeTimeDateTime = DateTime(
-                        now.year,
-                        now.month,
-                        now.day,
+                        _sleepDate!.year,
+                        _sleepDate!.month,
+                        _sleepDate!.day,
                         _sleepEnd!.hour,
                         _sleepEnd!.minute,
                       );
 
-                      // กรณีนอนข้ามวัน
+                      // Handle case when sleep crosses midnight
                       if (wakeTimeDateTime.isBefore(sleepStartDateTime)) {
                         wakeTimeDateTime =
                             wakeTimeDateTime.add(const Duration(days: 1));
                       }
                     }
+
                     final baseUrl = dotenv.env['BASE_URL']!;
 
                     final response = await http.post(
@@ -331,7 +387,8 @@ class _ActivityPageState extends State<ActivityPage> {
                         "activity_type": _selectedActivity?.toLowerCase() ?? '',
                         'description': _descriptionController.text.trim(),
                         'duration_minutes': int.tryParse(minutes) ?? 0,
-                        'timestamp': now.toIso8601String(),
+                        'timestamp':
+                            (_sleepDate ?? DateTime.now()).toIso8601String(),
                         'sleep_time': sleepStartDateTime?.toIso8601String(),
                         'wake_time': wakeTimeDateTime?.toIso8601String(),
                         'cal_burned': _dontKnowCalories
@@ -341,15 +398,20 @@ class _ActivityPageState extends State<ActivityPage> {
                       }),
                     );
 
+                    if (!mounted) return;
+
                     if (response.statusCode == 201) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                            content: Text('Activity saved successfully')),
+                            content: Text('✅ Activity saved successfully')),
                       );
-                      Navigator.pop(context, true);
+
+                      if (widget.onSave != null) {
+                        widget.onSave!(activity);
+                      }
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error: ${response.body}')),
+                        SnackBar(content: Text('❌ Error: ${response.body}')),
                       );
                     }
                   },
@@ -408,4 +470,25 @@ class _ActivityPageState extends State<ActivityPage> {
       ),
     );
   }
+}
+
+Widget _buildDatePicker({
+  required String label,
+  required DateTime? date,
+  required VoidCallback onPressed,
+}) {
+  return GestureDetector(
+    onTap: onPressed,
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        date != null ? "${date.toLocal()}".split(' ')[0] : label,
+        style: const TextStyle(fontSize: 16),
+      ),
+    ),
+  );
 }

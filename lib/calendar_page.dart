@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'models/meal.dart';
 import 'models/activity.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'add_page.dart';
+import 'activity_page.dart';
 
 class CalendarPage extends StatefulWidget {
-  final Map<DateTime, List<Meal>> mealsPerDay;
-  final Map<DateTime, List<Activity>> activitiesPerDay;
   final Function(Meal) onEditMeal;
   final Function(Meal) onDeleteMeal;
   final Function(Activity) onEditActivity;
@@ -13,8 +17,6 @@ class CalendarPage extends StatefulWidget {
 
   const CalendarPage({
     super.key,
-    required this.mealsPerDay,
-    required this.activitiesPerDay,
     required this.onEditMeal,
     required this.onDeleteMeal,
     required this.onEditActivity,
@@ -29,17 +31,85 @@ class _CalendarPageState extends State<CalendarPage> {
   DateTime _focusedDay = DateTime.now();
   DateTime _selectedDay = DateTime.now();
 
-  DateTime get _dayKey => DateTime(_selectedDay.year, _selectedDay.month, _selectedDay.day);
+  DateTime get _dayKey =>
+      DateTime(_selectedDay.year, _selectedDay.month, _selectedDay.day);
 
-  List<Meal> get _mealsForDay => widget.mealsPerDay[_dayKey] ?? [];
-  List<Activity> get _activitiesForDay => widget.activitiesPerDay[_dayKey] ?? [];
+  final Map<DateTime, List<Meal>> _mealsPerDay = {};
+  final Map<DateTime, List<Activity>> _activitiesPerDay = {};
+
+  List<Meal> get _mealsForDay => _mealsPerDay[_dayKey] ?? [];
+  List<Activity> get _activitiesForDay => _activitiesPerDay[_dayKey] ?? [];
 
   int get _totalKcalForDay {
     return _mealsForDay.fold(0, (sum, m) => sum + (int.tryParse(m.kcal) ?? 0));
   }
 
-  List<Meal> _filterMeals(String type) =>
-      _mealsForDay.where((m) => m.type.toLowerCase() == type.toLowerCase()).toList();
+  List<Meal> _filterMeals(String type) => _mealsForDay
+      .where((m) => m.type.toLowerCase() == type.toLowerCase())
+      .toList();
+
+  void _editMeal(Meal oldMeal) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => AddPage(existingMeal: oldMeal)),
+    );
+
+    if (result != null && result is Meal) {
+      // Replace old meal
+      setState(() {
+        final meals = _mealsPerDay[_dayKey];
+        if (meals != null) {
+          final index = meals.indexWhere((m) => m.id == oldMeal.id);
+          if (index != -1) {
+            meals[index] = result;
+          }
+        }
+      });
+    }
+  }
+
+  void _deleteMeal(Meal meal) async {
+    final baseUrl = dotenv.env['BASE_URL'];
+    final response =
+        await http.delete(Uri.parse('$baseUrl/api/meals/${meal.id}'));
+
+    if (response.statusCode == 200) {
+      setState(() {
+        _mealsPerDay[_dayKey]?.removeWhere((m) => m.id == meal.id);
+      });
+    }
+  }
+
+  void _editActivity(Activity oldAct) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => ActivityPage(existingActivity: oldAct)),
+    );
+
+    if (result != null && result is Activity) {
+      setState(() {
+        final activities = _activitiesPerDay[_dayKey];
+        if (activities != null) {
+          final index = activities.indexWhere((a) => a.id == oldAct.id);
+          if (index != -1) {
+            activities[index] = result;
+          }
+        }
+      });
+    }
+  }
+
+  void _deleteActivity(Activity act) async {
+    final baseUrl = dotenv.env['BASE_URL'];
+    final response =
+        await http.delete(Uri.parse('$baseUrl/api/activities/${act.id}'));
+
+    if (response.statusCode == 200) {
+      setState(() {
+        _activitiesPerDay[_dayKey]?.removeWhere((a) => a.id == act.id);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,9 +125,11 @@ class _CalendarPageState extends State<CalendarPage> {
             selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
             onDaySelected: (selectedDay, focusedDay) {
               setState(() {
-                _selectedDay = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
+                _selectedDay = DateTime(
+                    selectedDay.year, selectedDay.month, selectedDay.day);
                 _focusedDay = focusedDay;
               });
+              _fetchDataForDay(selectedDay);
             },
             calendarStyle: const CalendarStyle(
               todayDecoration: BoxDecoration(
@@ -80,22 +152,67 @@ class _CalendarPageState extends State<CalendarPage> {
                     padding: const EdgeInsets.all(16),
                     child: Text(
                       'Total: $_totalKcalForDay Kcal',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                   ),
                 ),
-                _MealCard('Breakfast', _filterMeals('Breakfast'), widget.onEditMeal, widget.onDeleteMeal),
-                _MealCard('Lunch', _filterMeals('Lunch'), widget.onEditMeal, widget.onDeleteMeal),
-                _MealCard('Dinner', _filterMeals('Dinner'), widget.onEditMeal, widget.onDeleteMeal),
-                _MealCard('Snack', _filterMeals('Snack'), widget.onEditMeal, widget.onDeleteMeal),
-                _MealCard('Drink', _filterMeals('Drink'), widget.onEditMeal, widget.onDeleteMeal),
-                _ActivityCard(_activitiesForDay, widget.onEditActivity, widget.onDeleteActivity),
+                _MealCard('Breakfast', _filterMeals('Breakfast'), _editMeal,
+                    _deleteMeal),
+                _MealCard(
+                    'Lunch', _filterMeals('Lunch'), _editMeal, _deleteMeal),
+                _MealCard(
+                    'Dinner', _filterMeals('Dinner'), _editMeal, _deleteMeal),
+                _MealCard(
+                    'Snack', _filterMeals('Snack'), _editMeal, _deleteMeal),
+                _MealCard(
+                    'Drink', _filterMeals('Drink'), _editMeal, _deleteMeal),
+                _ActivityCard(
+                    _activitiesForDay, _editActivity, _deleteActivity),
               ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDataForDay(_selectedDay);
+  }
+
+  void _fetchDataForDay(DateTime day) async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('userId');
+    if (userId == null) return;
+
+    final baseUrl = dotenv.env['BASE_URL'];
+
+    final dayStart = DateTime(day.year, day.month, day.day);
+    final dayEnd = dayStart.add(const Duration(days: 1));
+
+    final mealResponse = await http.get(Uri.parse(
+      '$baseUrl/api/meals/day?user_id=$userId&start=${dayStart.toIso8601String()}&end=${dayEnd.toIso8601String()}',
+    ));
+
+    final activityResponse = await http.get(Uri.parse(
+      '$baseUrl/api/activities/day?user_id=$userId&start=${dayStart.toIso8601String()}&end=${dayEnd.toIso8601String()}',
+    ));
+
+    if (mealResponse.statusCode == 200 && activityResponse.statusCode == 200) {
+      final mealData = jsonDecode(mealResponse.body) as List;
+      final activityData = jsonDecode(activityResponse.body) as List;
+
+      final meals = mealData.map((m) => Meal.fromJson(m)).toList();
+      final activities = activityData.map((a) => Activity.fromJson(a)).toList();
+
+      setState(() {
+        _mealsPerDay[_dayKey] = meals;
+        _activitiesPerDay[_dayKey] = activities;
+      });
+    }
   }
 }
 
@@ -119,29 +236,33 @@ class _MealCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(title,
+              style:
+                  const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           if (meals.isEmpty)
             const Text('No meals yet')
           else
             ...meals.map((m) => Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(child: Text('${m.menu} (${m.kcal} kcal, ${m.portion})')),
-                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit, size: 20),
-                      onPressed: () => onEdit(m),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, size: 20),
-                      onPressed: () => onDelete(m),
+                    Expanded(
+                        child:
+                            Text('${m.menu} (${m.kcal} kcal, ${m.portion})')),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit, size: 20),
+                          onPressed: () => onEdit(m),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, size: 20),
+                          onPressed: () => onDelete(m),
+                        ),
+                      ],
                     ),
                   ],
-                ),
-              ],
-            )),
+                )),
         ],
       ),
     );
@@ -167,29 +288,30 @@ class _ActivityCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Activity', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const Text('Activity',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           if (activities.isEmpty)
             const Text('No activity yet')
           else
             ...activities.map((a) => Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(child: Text('${a.type} ${a.hours} ชม.')),
-                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit, size: 20),
-                      onPressed: () => onEdit(a),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, size: 20),
-                      onPressed: () => onDelete(a),
+                    Expanded(child: Text('${a.type} ${a.hours} ชม.')),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit, size: 20),
+                          onPressed: () => onEdit(a),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, size: 20),
+                          onPressed: () => onDelete(a),
+                        ),
+                      ],
                     ),
                   ],
-                ),
-              ],
-            )),
+                )),
         ],
       ),
     );

@@ -26,16 +26,15 @@ class _SettingPageState extends State<SettingPage> {
   }
 
   Future<void> _openHelpCenter() async {
-  const url = 'https://www.youtube.com/watch?v=xvFZjo5PgG0';
-  final Uri uri = Uri.parse(url);
+    const url = 'https://www.youtube.com/watch?v=xvFZjo5PgG0';
+    final Uri uri = Uri.parse(url);
 
-  if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Couldn't launch Help Center")),
-    );
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Couldn't launch Help Center")),
+      );
+    }
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +96,8 @@ class _SettingPageState extends State<SettingPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text('App Version', style: TextStyle(fontSize: 14)),
-                          Text('0.0.1 (Beta)', style: TextStyle(fontSize: 14)),
+                          Text('0.0.Final Project (Test)',
+                              style: TextStyle(fontSize: 14)),
                         ],
                       ),
                       const SizedBox(height: 20),
