@@ -60,8 +60,8 @@ class _AccountPageState extends State<AccountPage> {
 
   Future<void> _saveProfile() async {
     if (userId == null) return;
-
-    final uri = Uri.parse('http://10.0.2.2:3000/api/profile/$userId');
+    final baseUrl = dotenv.env['BASE_URL']!;
+    final uri = Uri.parse('$baseUrl/api/profile/$userId');
     final response = await http.put(
       uri,
       headers: {"Content-Type": "application/json"},
@@ -172,7 +172,10 @@ class _AccountPageState extends State<AccountPage> {
                   ),
                   child: const Text(
                     'SAVE',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16,color:Colors.white),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.white),
                   ),
                 ),
               ),
