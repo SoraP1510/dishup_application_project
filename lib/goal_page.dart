@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class GoalPage extends StatefulWidget {
   final int currentGoal;
@@ -41,16 +45,41 @@ class _GoalPageState extends State<GoalPage> {
             ),
             const SizedBox(height: 30),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 final goal = int.tryParse(_controller.text);
                 if (goal != null && goal > 0) {
-                  Navigator.pop(context, goal);
+                  final prefs = await SharedPreferences.getInstance();
+                  final userId = prefs.getString('userId');
+                  if (userId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('User not logged in')),
+                    );
+                    return;
+                  }
+
+                  final baseUrl = dotenv.env['BASE_URL']!;
+                  final response = await http.put(
+                    Uri.parse('$baseUrl/api/profile/$userId'),
+                    headers: {'Content-Type': 'application/json'},
+                    body: jsonEncode({'kcal_target': goal}),
+                  );
+
+                  if (response.statusCode == 200) {
+                    Navigator.pop(context, goal); // ✅ return goal to HomePage
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content:
+                              Text('Failed to update goal: ${response.body}')),
+                    );
+                  }
                 }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF60BC2B),
               ),
-              child: const Text('บันทึก', style: TextStyle(color: Colors.white)),
+              child:
+                  const Text('บันทึก', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),

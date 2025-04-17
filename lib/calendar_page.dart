@@ -44,6 +44,30 @@ class _CalendarPageState extends State<CalendarPage> {
     return _mealsForDay.fold(0, (sum, m) => sum + (int.tryParse(m.kcal) ?? 0));
   }
 
+  String get _totalPortionSummary {
+    double totalGrams = 0;
+    double totalGlasses = 0;
+
+    for (var meal in _mealsForDay) {
+      final portion = double.tryParse(meal.portion) ?? 0;
+      if (meal.type.toLowerCase() == 'drink') {
+        totalGlasses += portion;
+      } else {
+        totalGrams += portion;
+      }
+    }
+
+    List<String> parts = [];
+    if (totalGrams > 0) {
+      parts.add('$totalGrams ${totalGrams == 1 ? 'gram' : 'grams'}');
+    }
+    if (totalGlasses > 0) {
+      parts.add('$totalGlasses ${totalGlasses == 1 ? 'glass' : 'glasses'}');
+    }
+
+    return parts.isEmpty ? '' : parts.join(', ');
+  }
+
   List<Meal> _filterMeals(String type) => _mealsForDay
       .where((m) => m.type.toLowerCase() == type.toLowerCase())
       .toList();
@@ -120,7 +144,10 @@ class _CalendarPageState extends State<CalendarPage> {
           const SizedBox(height: 20),
           TableCalendar(
             firstDay: DateTime.utc(2020, 1, 1),
+            headerStyle:
+                HeaderStyle(formatButtonVisible: false, titleCentered: true),
             lastDay: DateTime.utc(2030, 12, 31),
+            daysOfWeekVisible: true,
             focusedDay: _focusedDay,
             selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
             onDaySelected: (selectedDay, focusedDay) {
@@ -150,10 +177,16 @@ class _CalendarPageState extends State<CalendarPage> {
                   elevation: 2,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
-                    child: Text(
-                      'Total: $_totalKcalForDay Kcal',
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Total: $_totalKcalForDay Kcal',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16)),
+                        if (_totalPortionSummary.isNotEmpty)
+                          Text('Portions: $_totalPortionSummary',
+                              style: const TextStyle(fontSize: 14)),
+                      ],
                     ),
                   ),
                 ),
@@ -246,9 +279,14 @@ class _MealCard extends StatelessWidget {
             ...meals.map((m) => Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(
-                        child:
-                            Text('${m.menu} (${m.kcal} kcal, ${m.portion})')),
+                    Expanded(child: Text(() {
+                      final portion = double.tryParse(m.portion) ?? 0;
+                      final isDrink = m.type.toLowerCase() == 'drink';
+                      final unit = isDrink
+                          ? (portion == 1 ? 'glass' : 'glasses')
+                          : (portion == 1 ? 'gram' : 'grams');
+                      return '${m.menu} (${m.kcal} kcal, ${m.portion} $unit)';
+                    }())),
                     Row(
                       children: [
                         IconButton(
@@ -297,7 +335,17 @@ class _ActivityCard extends StatelessWidget {
             ...activities.map((a) => Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(child: Text('${a.type} ${a.hours} ชม.')),
+                    Expanded(
+                      child: Text(() {
+                        final totalMinutes = int.tryParse(a.hours) ?? 0;
+                        final hours = totalMinutes ~/ 60;
+                        final minutes = totalMinutes % 60;
+                        if (minutes == 0) {
+                          return '${a.type} for ${hours} hr.';
+                        }
+                        return '${a.type} for ${hours} hr. ${minutes} min';
+                      }()),
+                    ),
                     Row(
                       children: [
                         IconButton(

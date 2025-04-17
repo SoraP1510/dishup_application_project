@@ -66,7 +66,7 @@ app.get('/api/profile/:id', async (req, res) => {
 
   try {
     const [rows] = await db.query(
-      `SELECT username, email, password, age, country, avatar_url, weight, height FROM profiles WHERE id = ?`,
+      `SELECT username, email, password, age, country, avatar_url, weight, height, kcal_target FROM profiles WHERE id = ?`,
       [userId]
     );
 
@@ -84,25 +84,19 @@ app.get('/api/profile/:id', async (req, res) => {
 //update profile
 app.put('/api/profile/:id', async (req, res) => {
   const userId = req.params.id;
-  const {
-    username,
-    email,
-    password,
-    age,
-    country,
-    weight,
-    height,
-    avatar_url
-  } = req.body;
+  const updateFields = [];
+  const values = [];
+
+  for (const [key, value] of Object.entries(req.body)) {
+    updateFields.push(`${key} = ?`);
+    values.push(value);
+  }
+  values.push(userId);
+
+  const sql = `UPDATE profiles SET ${updateFields.join(', ')} WHERE id = ?`;
 
   try {
-    await db.query(
-      `UPDATE profiles 
-       SET username = ?, email = ?, password = ?, age = ?, country = ?, weight = ?, height = ?, avatar_url = ?
-       WHERE id = ?`,
-      [username, email, password, age, country, weight, height, avatar_url, userId]
-    );
-
+    await db.query(sql, values);
     res.status(200).json({ message: 'Profile updated successfully' });
   } catch (err) {
     console.error('Update error:', err);
@@ -247,6 +241,50 @@ app.delete('/api/activities/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to delete activity' });
   }
 });
+
+// Update activity
+app.put('/api/activities/:id', async (req, res) => {
+  const { id } = req.params;
+  const {
+    activity_type,
+    description,
+    duration_minutes,
+    timestamp,
+    sleep_time,
+    wake_time,
+    cal_burned
+  } = req.body;
+
+  try {
+    await db.query(
+      `UPDATE activities SET
+        activity_type = ?,
+        description = ?,
+        duration_minutes = ?,
+        timestamp = ?,
+        sleep_time = ?,
+        wake_time = ?,
+        cal_burned = ?
+      WHERE id = ?`,
+      [
+        activity_type,
+        description,
+        duration_minutes,
+        timestamp,
+        sleep_time || null,
+        wake_time || null,
+        cal_burned || null,
+        id
+      ]
+    );
+
+    res.status(200).json({ message: 'Activity updated successfully' });
+  } catch (err) {
+    console.error('Update activity error:', err);
+    res.status(500).json({ error: 'Failed to update activity' });
+  }
+});
+
 
 
 

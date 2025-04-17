@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AddPage extends StatefulWidget {
-  final Meal? existingMeal; // ✅ ใช้สำหรับแก้ไข
+  final Meal? existingMeal;
 
   const AddPage({super.key, this.existingMeal});
 
@@ -31,6 +31,7 @@ class _AddPageState extends State<AddPage> {
       _menuController.text = widget.existingMeal!.menu;
       _kcalController.text = widget.existingMeal!.kcal;
       _portionController.text = widget.existingMeal!.portion;
+      _selectedDateTime = widget.existingMeal!.timestamp.toLocal();
     }
   }
 
@@ -204,9 +205,7 @@ class _AddPageState extends State<AddPage> {
                       'name': _menuController.text,
                       'type': _mealType!.toLowerCase(),
                       'portion': _portionController.text,
-                      'energy': _mealType == 'Drink'
-                          ? 0
-                          : int.tryParse(_kcalController.text) ?? 0,
+                      'energy': int.tryParse(_kcalController.text) ?? 0,
                       'timestamp': (_selectedDateTime ?? DateTime.now())
                           .toIso8601String(),
                     };

@@ -22,7 +22,7 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   List<Meal> _meals = [];
   List<Activity> _activities = [];
-  int _goalKcal = 6000;
+  int _goalKcal = 2000;
 
   Map<DateTime, List<Meal>> mealsPerDay = {};
   Map<DateTime, List<Activity>> activitiesPerDay = {};
@@ -31,6 +31,28 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _fetchMealsFromBackend();
+    _fetchGoalKcal();
+  }
+
+  Future<void> _fetchGoalKcal() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('userId');
+    if (userId == null) return;
+
+    final baseUrl = dotenv.env['BASE_URL']!;
+    final response = await http.get(Uri.parse('$baseUrl/api/profile/$userId'));
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final target = data['kcal_target'];
+      if (target != null && target is int) {
+        setState(() {
+          _goalKcal = target;
+        });
+      }
+    } else {
+      print('⚠️ Failed to fetch goal kcal: ${response.body}');
+    }
   }
 
   Future<void> _fetchMealsFromBackend() async {
