@@ -282,6 +282,11 @@ class _HomePageState extends State<HomePage> {
           }
         },
         quote: _quote,
+        onRefresh: () async {
+          await _fetchTodayData();
+          await _fetchQuote();
+          await _fetchGoalKcal();
+        },
       ),
       CalendarPage(
         onEditMeal: (_) {},
@@ -462,8 +467,8 @@ class _MainHomeContent extends StatelessWidget {
   final Function(Meal) onDeleteMeal;
   final Function(Activity) onEditActivity;
   final Function(Activity) onDeleteActivity;
-
   final String? quote;
+  final Future<void> Function() onRefresh;
 
   const _MainHomeContent({
     required this.meals,
@@ -476,6 +481,7 @@ class _MainHomeContent extends StatelessWidget {
     required this.onEditActivity,
     required this.onDeleteActivity,
     required this.quote,
+    required this.onRefresh,
   });
 
   List<Meal> _filterMeals(String type) =>
@@ -483,42 +489,46 @@ class _MainHomeContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 25),
-      children: [
-        AnimatedQuoteContainer(quote: quote),
-        const SizedBox(height: 15),
-        GestureDetector(
-          onTap: onTapGoalCard,
-          child: Card(
-            elevation: 4,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  const Text("Today's Goal", style: TextStyle(fontSize: 16)),
-                  const SizedBox(height: 6),
-                  LinearProgressIndicator(
-                    value: goalKcal == 0 ? 0 : totalKcal / goalKcal,
-                    backgroundColor: Colors.grey[300],
-                    valueColor:
-                        const AlwaysStoppedAnimation<Color>(Colors.blue),
-                    minHeight: 6,
-                  ),
-                  const SizedBox(height: 8),
-                  Text('$totalKcal / $goalKcal Kcal',
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
-                ],
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      child: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 25),
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          AnimatedQuoteContainer(quote: quote),
+          const SizedBox(height: 15),
+          GestureDetector(
+            onTap: onTapGoalCard,
+            child: Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    const Text("Today's Goal", style: TextStyle(fontSize: 16)),
+                    const SizedBox(height: 6),
+                    LinearProgressIndicator(
+                      value: goalKcal == 0 ? 0 : totalKcal / goalKcal,
+                      backgroundColor: Colors.grey[300],
+                      valueColor:
+                          const AlwaysStoppedAnimation<Color>(Colors.blue),
+                      minHeight: 6,
+                    ),
+                    const SizedBox(height: 8),
+                    Text('$totalKcal / $goalKcal Kcal',
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-        for (var type in ['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Drink'])
-          _MealCard(type, _filterMeals(type), onEditMeal, onDeleteMeal),
-        _ActivityCard(activities, onEditActivity, onDeleteActivity),
-      ],
+          for (var type in ['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Drink'])
+            _MealCard(type, _filterMeals(type), onEditMeal, onDeleteMeal),
+          _ActivityCard(activities, onEditActivity, onDeleteActivity),
+        ],
+      ),
     );
   }
 }

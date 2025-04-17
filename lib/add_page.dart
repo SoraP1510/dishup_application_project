@@ -215,8 +215,6 @@ class _AddPageState extends State<AddPage> {
                       'timestamp': formattedTimestamp,
                     };
 
-                    print('Sending mealData: $mealData');
-
                     final url = widget.existingMeal == null
                         ? Uri.parse('$baseUrl/api/meals')
                         : Uri.parse(
