@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'dart:async';
 
 class StaticTopBar extends StatefulWidget {
   const StaticTopBar({super.key});
@@ -15,37 +16,105 @@ class StaticTopBar extends StatefulWidget {
 class _StaticTopBarState extends State<StaticTopBar> {
   OverlayEntry? _overlayEntry;
   final LayerLink _layerLink = LayerLink();
-
   String? avatarUrl;
+  List<String> _notifications = [];
 
   @override
   void initState() {
     super.initState();
     _loadAvatar();
+    _initializeNotifications();
+    _startHydrationReminder();
+  }
+
+  Future<bool> _isNotificationEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('notifications_enabled') ?? true;
+  }
+
+  void _startHydrationReminder() {
+    Timer.periodic(const Duration(hours: 1), (timer) {
+      _addNotification("💧 Time to drink some water!");
+    });
+  }
+
+  Future<void> _initializeNotifications() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('userId');
+    if (userId == null) return;
+
+    final baseUrl = dotenv.env['BASE_URL']!;
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+    final todayEnd = todayStart.add(const Duration(days: 1));
+
+    final mealRes = await http.get(Uri.parse(
+        '$baseUrl/api/meals/day?user_id=$userId&start=${todayStart.toIso8601String()}&end=${todayEnd.toIso8601String()}'));
+    if (mealRes.statusCode == 200) {
+      final List meals = jsonDecode(mealRes.body);
+      final int totalKcal = meals.fold(0, (sum, m) {
+        final energy = m['energy'];
+        return sum +
+            (energy is int ? energy : int.tryParse(energy.toString()) ?? 0);
+      });
+      final profileRes =
+          await http.get(Uri.parse('$baseUrl/api/profile/$userId'));
+      if (profileRes.statusCode == 200) {
+        final profile = jsonDecode(profileRes.body);
+        final goal = profile['kcal_target'] ?? 2000;
+        if (totalKcal >= goal) {
+          _addNotification("🎯 You’ve reached your calorie goal!");
+        }
+      }
+    }
+
+    final actRes = await http.get(Uri.parse(
+        '$baseUrl/api/activities/day?user_id=$userId&start=${todayStart.toIso8601String()}&end=${todayEnd.toIso8601String()}'));
+    if (actRes.statusCode == 200) {
+      final List activities = jsonDecode(actRes.body);
+      final bool slept = activities.any((a) => a['activity_type'] == 'sleep');
+      final bool exercised =
+          activities.any((a) => a['activity_type'] == 'exercise');
+
+      if (!slept) _addNotification("🛏 Don’t forget to log your sleep today!");
+      if (!exercised) _addNotification("🏃 Don’t forget to exercise today!");
+    }
+  }
+
+  void _addNotification(String message) {
+    if (!_notifications.contains(message)) {
+      setState(() {
+        _notifications.add(message);
+      });
+    }
   }
 
   Future<void> _loadAvatar() async {
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getString('userId');
-
     if (userId == null) return;
 
     final baseUrl = dotenv.env['BASE_URL']!;
-
-    final uri = Uri.parse('$baseUrl/api/profile/$userId');
-    final response = await http.get(uri);
+    final response = await http.get(Uri.parse('$baseUrl/api/profile/$userId'));
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       setState(() {
         avatarUrl = data['avatar_url'];
       });
-    } else {
-      debugPrint('Failed to load avatar');
     }
   }
 
-  void _toggleNotifications(BuildContext context) {
+  void _toggleNotifications(BuildContext context) async {
+    final isEnabled = await _isNotificationEnabled();
+    if (!isEnabled) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Notifications are disabled")),
+      );
+      return;
+    }
+
+    // 👉 Check and remove overlay if it's already shown
     if (_overlayEntry != null) {
       _overlayEntry?.remove();
       _overlayEntry = null;
@@ -53,9 +122,10 @@ class _StaticTopBarState extends State<StaticTopBar> {
     }
 
     final overlay = Overlay.of(context);
+
     _overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
-        width: 250,
+        width: 260,
         child: CompositedTransformFollower(
           link: _layerLink,
           showWhenUnlinked: false,
@@ -75,20 +145,10 @@ class _StaticTopBarState extends State<StaticTopBar> {
                   const Text('Notifications',
                       style: TextStyle(fontWeight: FontWeight.bold)),
                   const Divider(),
-                  _notificationItem("🍎 You added a healthy meal!"),
-                  _notificationItem("🚶‍♂️ Walked 4.5km today."),
-                  _notificationItem("💧 Don’t forget to hydrate!"),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    // child: TextButton(
-                    //   onPressed: () {
-                    //     _overlayEntry?.remove();
-                    //     _overlayEntry = null;
-                    //   },
-                    //   child: const Text("Close"),
-                    // ),
-                  )
+                  if (_notifications.isEmpty)
+                    const Text("No recent notifications",
+                        style: TextStyle(fontSize: 13)),
+                  ..._notifications.map(_notificationItem).toList(),
                 ],
               ),
             ),
@@ -115,13 +175,12 @@ class _StaticTopBarState extends State<StaticTopBar> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Avatar button
             GestureDetector(
               onTap: () async {
                 final currentRoute = ModalRoute.of(context)?.settings.name;
 
                 if (currentRoute == '/account') {
-                  Navigator.pop(context);
+                  Navigator.pop(context); // Already on AccountPage, so go back
                 } else {
                   final result = await Navigator.push(
                     context,
@@ -130,10 +189,7 @@ class _StaticTopBarState extends State<StaticTopBar> {
                       settings: const RouteSettings(name: '/account'),
                     ),
                   );
-
-                  if (result == 'refresh') {
-                    _loadAvatar();
-                  }
+                  if (result == 'refresh') _loadAvatar();
                 }
               },
               child: CircleAvatar(
@@ -145,12 +201,8 @@ class _StaticTopBarState extends State<StaticTopBar> {
                         as ImageProvider,
               ),
             ),
-
-            const Text(
-              'DishUp',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-
+            const Text('DishUp',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             GestureDetector(
               onTap: () => _toggleNotifications(context),
               child: const Icon(Icons.notifications, size: 24),

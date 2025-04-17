@@ -77,21 +77,17 @@ class _ActivityPageState extends State<ActivityPage> {
     final isSleep = _selectedActivity == 'Sleep';
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text(
+            widget.existingActivity != null ? 'Edit Activity' : 'Add Activity'),
+        backgroundColor: const Color(0xFF60BC2B),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                widget.existingActivity != null
-                    ? 'Edit Activity'
-                    : 'Add Activity',
-                style:
-                    const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
               _buildActivityDropdown(),
               const SizedBox(height: 20),
               if (_selectedActivity == 'Exercise' ||
@@ -99,15 +95,21 @@ class _ActivityPageState extends State<ActivityPage> {
                 _buildDescriptionField(),
               if (_selectedActivity == 'Sleep')
                 _buildDatePickerSection(
-                    'SLEEP DATE', _sleepDate, () => _selectDate(isSleep: true)),
+                  'SLEEP DATE',
+                  _sleepDate,
+                  () => _selectDate(isSleep: true),
+                ),
               if (_selectedActivity == 'Exercise')
-                _buildDatePickerSection('EXERCISE DATE', _exerciseDate,
-                    () => _selectDate(isSleep: false)),
+                _buildDatePickerSection(
+                  'EXERCISE DATE',
+                  _exerciseDate,
+                  () => _selectDate(isSleep: false),
+                ),
               if (_selectedActivity == 'Exercise') _buildCaloriesField(),
               if (_selectedActivity == 'Exercise') _buildDurationField(),
-              if (isSleep) _buildTimePickers(),
+              if (_selectedActivity == 'Sleep') _buildTimePickers(),
               const SizedBox(height: 30),
-              if (_selectedActivity != null) _buildSaveButton()
+              if (_selectedActivity != null) Center(child: _buildSaveButton()),
             ],
           ),
         ),

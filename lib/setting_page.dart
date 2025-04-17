@@ -14,6 +14,24 @@ class SettingPage extends StatefulWidget {
 class _SettingPageState extends State<SettingPage> {
   bool _notificationEnabled = true;
 
+  @override
+  void initState() {
+    super.initState();
+    _loadNotificationSetting();
+  }
+
+  void _loadNotificationSetting() async {
+    final prefs = await SharedPreferences.getInstance();
+    final value = prefs.getBool('notifications_enabled') ?? true;
+    setState(() => _notificationEnabled = value);
+  }
+
+  void _toggleNotification(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notifications_enabled', value);
+    setState(() => _notificationEnabled = value);
+  }
+
   void _logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
@@ -61,11 +79,7 @@ class _SettingPageState extends State<SettingPage> {
                           ),
                           Switch(
                             value: _notificationEnabled,
-                            onChanged: (value) {
-                              setState(() {
-                                _notificationEnabled = value;
-                              });
-                            },
+                            onChanged: _toggleNotification,
                             activeColor: Colors.black,
                           ),
                         ],

@@ -59,10 +59,10 @@ class _CalendarPageState extends State<CalendarPage> {
 
     List<String> parts = [];
     if (totalGrams > 0) {
-      parts.add('$totalGrams ${totalGrams == 1 ? 'gram' : 'grams'}');
+      parts.add('$totalGrams ${totalGrams == 1 ? 'Gram' : 'Grams'}');
     }
     if (totalGlasses > 0) {
-      parts.add('$totalGlasses ${totalGlasses == 1 ? 'glass' : 'glasses'}');
+      parts.add('$totalGlasses ${totalGlasses == 1 ? 'Glass' : 'Glasses'}');
     }
 
     return parts.isEmpty ? '' : parts.join(', ');
@@ -180,12 +180,58 @@ class _CalendarPageState extends State<CalendarPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Total: $_totalKcalForDay Kcal',
+                        Text('Meal Summary',
                             style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16)),
+                                fontWeight: FontWeight.bold, fontSize: 18)),
+                        const SizedBox(height: 8),
+                        Text('Energy: $_totalKcalForDay kcal',
+                            style: const TextStyle(fontSize: 14)),
                         if (_totalPortionSummary.isNotEmpty)
                           Text('Portions: $_totalPortionSummary',
                               style: const TextStyle(fontSize: 14)),
+                      ],
+                    ),
+                  ),
+                ),
+                Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Activity Summary',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        if (_activitiesForDay.any((a) => a.type == 'exercise'))
+                          Text(
+                            () {
+                              final minutes = _activitiesForDay
+                                  .where((a) => a.type == 'exercise')
+                                  .fold(
+                                      0,
+                                      (sum, a) =>
+                                          sum + (int.tryParse(a.hours) ?? 0));
+                              final h = minutes ~/ 60;
+                              final m = minutes % 60;
+                              return 'Exercise: $h hr${m > 0 ? ' $m min' : ''}';
+                            }(),
+                          ),
+                        if (_activitiesForDay.any((a) => a.type == 'sleep'))
+                          Text(
+                            () {
+                              final minutes = _activitiesForDay
+                                  .where((a) => a.type == 'sleep')
+                                  .fold(
+                                      0,
+                                      (sum, a) =>
+                                          sum + (int.tryParse(a.hours) ?? 0));
+                              final h = minutes ~/ 60;
+                              final m = minutes % 60;
+                              return 'Sleep: $h hr${m > 0 ? ' $m min' : ''}';
+                            }(),
+                          ),
                       ],
                     ),
                   ),
@@ -283,9 +329,9 @@ class _MealCard extends StatelessWidget {
                       final portion = double.tryParse(m.portion) ?? 0;
                       final isDrink = m.type.toLowerCase() == 'drink';
                       final unit = isDrink
-                          ? (portion == 1 ? 'glass' : 'glasses')
-                          : (portion == 1 ? 'gram' : 'grams');
-                      return '${m.menu} (${m.kcal} kcal, ${m.portion} $unit)';
+                          ? (portion == 1 ? ' Glass' : ' Glasses')
+                          : (portion == 1 ? 'g' : 'g');
+                      return '${m.menu} (${m.kcal} kcal, ${m.portion}$unit)';
                     }())),
                     Row(
                       children: [

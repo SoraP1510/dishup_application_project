@@ -198,6 +198,12 @@ class _AddPageState extends State<AddPage> {
 
                     final baseUrl = dotenv.env['BASE_URL']!;
                     final mealId = widget.existingMeal?.id ?? const Uuid().v4();
+                    final DateTime timestamp =
+                        (_selectedDateTime ?? DateTime.now());
+                    String _twoDigits(int n) => n.toString().padLeft(2, '0');
+                    final formattedTimestamp =
+                        '${timestamp.year}-${_twoDigits(timestamp.month)}-${_twoDigits(timestamp.day)} '
+                        '${_twoDigits(timestamp.hour)}:${_twoDigits(timestamp.minute)}:${_twoDigits(timestamp.second)}';
 
                     final mealData = {
                       'id': mealId,
@@ -206,9 +212,10 @@ class _AddPageState extends State<AddPage> {
                       'type': _mealType!.toLowerCase(),
                       'portion': _portionController.text,
                       'energy': int.tryParse(_kcalController.text) ?? 0,
-                      'timestamp': (_selectedDateTime ?? DateTime.now())
-                          .toIso8601String(),
+                      'timestamp': formattedTimestamp,
                     };
+
+                    print('Sending mealData: $mealData');
 
                     final url = widget.existingMeal == null
                         ? Uri.parse('$baseUrl/api/meals')

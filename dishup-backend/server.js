@@ -285,6 +285,21 @@ app.put('/api/activities/:id', async (req, res) => {
   }
 });
 
+//random quotes
+app.get('/api/quotes/random', async (req, res) => {
+  try {
+    const [rows] = await db.query(`SELECT text FROM quotes ORDER BY RAND() LIMIT 1`);
+    if (rows.length > 0) {
+      res.status(200).json({ quote: rows[0].text });
+    } else {
+      res.status(404).json({ error: 'No quote found' });
+    }
+  } catch (err) {
+    console.error('Fetch quote error:', err);
+    res.status(500).json({ error: 'Failed to fetch quote' });
+  }
+});
+
 
 
 
