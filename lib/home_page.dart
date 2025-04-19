@@ -146,9 +146,8 @@ class _HomePageState extends State<HomePage> {
 
   void _onItemTapped(int index) async {
     if (index == 0) {
-      // We're switching *to* HomePage tab
       staticTopBarKey.currentState?.refreshNotifications();
-      _fetchTodayData(); // optional if you want to refresh data too
+      _fetchTodayData(); 
     }
     if (index == 2) {
       final result = await Navigator.push(
@@ -168,7 +167,7 @@ class _HomePageState extends State<HomePage> {
           if (dateKey.year == today.year &&
               dateKey.month == today.month &&
               dateKey.day == today.day) {
-            _meals.add(result); // ✅ Only add if the meal is from today
+            _meals.add(result); 
           }
 
           mealsPerDay.putIfAbsent(dateKey, () => []);

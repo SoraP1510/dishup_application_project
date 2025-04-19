@@ -43,7 +43,6 @@ class _LoginPageState extends State<LoginPage> {
         final data = jsonDecode(response.body);
         final user = data['user'];
 
-        // 🔐 Save user info locally
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('userId', user['id']);
         await prefs.setString('userEmail', user['email']);
@@ -53,7 +52,6 @@ class _LoginPageState extends State<LoginPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("✅ Login successful")),
         );
-        // Navigate to home page
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomePage()),

@@ -83,10 +83,9 @@ class _AccountPageState extends State<AccountPage> {
         const SnackBar(content: Text('Profile updated successfully')),
       );
 
-      // Wait a second for the user to see the message
       await Future.delayed(const Duration(milliseconds: 500));
 
-      Navigator.pop(context, 'refresh'); // 👈 this returns to caller
+      Navigator.pop(context, 'refresh'); 
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${response.body}')),
@@ -110,7 +109,6 @@ class _AccountPageState extends State<AccountPage> {
                 const StaticTopBar(),
                 const SizedBox(height: 10),
 
-                // Profile picture with avatarUrl
                 Stack(
                   alignment: Alignment.bottomRight,
                   children: [
@@ -236,7 +234,7 @@ class _AccountPageState extends State<AccountPage> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context), // cancel
+            onPressed: () => Navigator.pop(context), 
             child: const Text('Cancel'),
           ),
           TextButton(

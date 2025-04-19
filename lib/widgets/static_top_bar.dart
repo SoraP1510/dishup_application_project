@@ -34,7 +34,7 @@ class StaticTopBarState extends State<StaticTopBar> {
   }
 
   void refreshNotifications() {
-    _initializeNotifications(); // force refresh
+    _initializeNotifications();
   }
 
   void _startHydrationReminder() {
@@ -48,7 +48,7 @@ class StaticTopBarState extends State<StaticTopBar> {
     setState(() {
       _notifications.clear();
     });
-    
+
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getString('userId');
     if (userId == null) return;

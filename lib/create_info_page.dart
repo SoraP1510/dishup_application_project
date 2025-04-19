@@ -35,7 +35,7 @@ class _CreateInfoPageState extends State<CreateInfoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: true, // ✅ allows keyboard to resize the body
+      resizeToAvoidBottomInset: true, 
       backgroundColor: Colors.grey[850],
       body: SafeArea(
         child: Container(
@@ -52,7 +52,7 @@ class _CreateInfoPageState extends State<CreateInfoPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Back arrow
+                        
                         IconButton(
                           icon: const Icon(Icons.arrow_back),
                           onPressed: () => Navigator.pop(context),
@@ -121,7 +121,7 @@ class _CreateInfoPageState extends State<CreateInfoPage> {
                             inputType: TextInputType.number),
                         const SizedBox(height: 40),
 
-                        // Finish Button
+                        
                         Center(
                           child: ElevatedButton(
                             onPressed: _handleSubmit,
@@ -149,7 +149,7 @@ class _CreateInfoPageState extends State<CreateInfoPage> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 20), // extra space
+                        const SizedBox(height: 20), 
                       ],
                     ),
                   ),

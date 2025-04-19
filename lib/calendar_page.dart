@@ -79,7 +79,6 @@ class _CalendarPageState extends State<CalendarPage> {
     );
 
     if (result != null && result is Meal) {
-      // Replace old meal
       setState(() {
         final meals = _mealsPerDay[_dayKey];
         if (meals != null) {

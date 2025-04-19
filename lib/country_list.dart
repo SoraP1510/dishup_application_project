@@ -1,4 +1,3 @@
-// lib/data/country_list.dart
 
 const List<String> countries = [
   'Afghanistan',

@@ -47,7 +47,6 @@ class _SignUpPageState extends State<SignUpPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Back Arrow
                     IconButton(
                       icon: const Icon(Icons.arrow_back),
                       onPressed: () => Navigator.pushReplacement(
@@ -188,7 +187,7 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 }
 
-// Reusable input label
+// Input label
 class InputLabel extends StatelessWidget {
   final String text;
   const InputLabel(this.text, {super.key});
@@ -202,7 +201,7 @@ class InputLabel extends StatelessWidget {
   }
 }
 
-// Reusable input field
+// Input field
 class CustomInputField extends StatelessWidget {
   final String hint;
   final bool obscure;
