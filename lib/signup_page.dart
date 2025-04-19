@@ -110,7 +110,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             return;
                           }
 
-                          Navigator.pushReplacement(
+                          Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (_) => CreateInfoPage(
