@@ -65,7 +65,7 @@ class _GoalPageState extends State<GoalPage> {
                   );
 
                   if (response.statusCode == 200) {
-                    Navigator.pop(context, goal); // ✅ return goal to HomePage
+                    Navigator.pop(context, goal); 
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(

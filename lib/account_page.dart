@@ -43,6 +43,7 @@ class _AccountPageState extends State<AccountPage> {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
+      if (!mounted) return;
       setState(() {
         nameController.text = data['username'] ?? '';
         emailController.text = data['email'] ?? '';
@@ -82,10 +83,9 @@ class _AccountPageState extends State<AccountPage> {
         const SnackBar(content: Text('Profile updated successfully')),
       );
 
-      // Wait a second for the user to see the message
       await Future.delayed(const Duration(milliseconds: 500));
 
-      Navigator.pop(context, 'refresh'); // 👈 this returns to caller
+      Navigator.pop(context, 'refresh'); 
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${response.body}')),
@@ -101,85 +101,89 @@ class _AccountPageState extends State<AccountPage> {
         child: Container(
           decoration: const BoxDecoration(color: Colors.white),
           padding: const EdgeInsets.fromLTRB(20, 18, 18, 0),
-          child: Column(
-            children: [
-              const StaticTopBar(),
-              const SizedBox(height: 10),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: 30),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const StaticTopBar(),
+                const SizedBox(height: 10),
 
-              // Profile picture with avatarUrl
-              Stack(
-                alignment: Alignment.bottomRight,
-                children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundImage: avatarUrl != null && avatarUrl!.isNotEmpty
-                        ? NetworkImage(avatarUrl!)
-                        : const AssetImage('assets/images/user.jpg')
-                            as ImageProvider,
-                    backgroundColor: Colors.grey[200],
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 4,
-                    child: GestureDetector(
-                      onTap: _promptAvatarUrl,
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white,
+                Stack(
+                  alignment: Alignment.bottomRight,
+                  children: [
+                    CircleAvatar(
+                      radius: 50,
+                      backgroundImage:
+                          avatarUrl != null && avatarUrl!.isNotEmpty
+                              ? NetworkImage(avatarUrl!)
+                              : const AssetImage('assets/images/user.jpg')
+                                  as ImageProvider,
+                      backgroundColor: Colors.grey[200],
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 4,
+                      child: GestureDetector(
+                        onTap: _promptAvatarUrl,
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                          ),
+                          padding: const EdgeInsets.all(4),
+                          child: const Icon(Icons.camera_alt, size: 18),
                         ),
-                        padding: const EdgeInsets.all(4),
-                        child: const Icon(Icons.camera_alt, size: 18),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
+                  ],
+                ),
+                const SizedBox(height: 20),
 
-              _label("Username"),
-              _inputField(nameController),
-              const SizedBox(height: 12),
-              _label("Email"),
-              _inputField(emailController),
-              const SizedBox(height: 12),
-              _label("Password"),
-              _inputField(passwordController, obscure: true),
-              const SizedBox(height: 12),
-              _label("Age"),
-              _inputField(ageController, inputType: TextInputType.number),
-              const SizedBox(height: 12),
-              _label("Weight (kg)"),
-              _inputField(weightController, inputType: TextInputType.number),
-              const SizedBox(height: 12),
-              _label("Height (cm)"),
-              _inputField(heightController, inputType: TextInputType.number),
-              const SizedBox(height: 12),
-              _label("Country/Region"),
-              _countryDropdown(),
-              const SizedBox(height: 30),
+                _label("Username"),
+                _inputField(nameController),
+                const SizedBox(height: 12),
+                _label("Email"),
+                _inputField(emailController),
+                const SizedBox(height: 12),
+                _label("Password"),
+                _inputField(passwordController, obscure: true),
+                const SizedBox(height: 12),
+                _label("Age"),
+                _inputField(ageController, inputType: TextInputType.number),
+                const SizedBox(height: 12),
+                _label("Weight (kg)"),
+                _inputField(weightController, inputType: TextInputType.number),
+                const SizedBox(height: 12),
+                _label("Height (cm)"),
+                _inputField(heightController, inputType: TextInputType.number),
+                const SizedBox(height: 12),
+                _label("Country/Region"),
+                _countryDropdown(),
+                const SizedBox(height: 30),
 
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _saveProfile,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6DDC5A),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _saveProfile,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6DDC5A),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    child: const Text(
+                      'SAVE',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.white),
                     ),
                   ),
-                  child: const Text(
-                    'SAVE',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Colors.white),
-                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -230,7 +234,7 @@ class _AccountPageState extends State<AccountPage> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context), // cancel
+            onPressed: () => Navigator.pop(context), 
             child: const Text('Cancel'),
           ),
           TextButton(

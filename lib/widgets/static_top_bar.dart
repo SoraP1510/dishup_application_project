@@ -10,10 +10,10 @@ class StaticTopBar extends StatefulWidget {
   const StaticTopBar({super.key});
 
   @override
-  State<StaticTopBar> createState() => _StaticTopBarState();
+  State<StaticTopBar> createState() => StaticTopBarState();
 }
 
-class _StaticTopBarState extends State<StaticTopBar> {
+class StaticTopBarState extends State<StaticTopBar> {
   OverlayEntry? _overlayEntry;
   final LayerLink _layerLink = LayerLink();
   String? avatarUrl;
@@ -25,11 +25,16 @@ class _StaticTopBarState extends State<StaticTopBar> {
     _loadAvatar();
     _initializeNotifications();
     _startHydrationReminder();
+    _initializeNotifications();
   }
 
   Future<bool> _isNotificationEnabled() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool('notifications_enabled') ?? true;
+  }
+
+  void refreshNotifications() {
+    _initializeNotifications();
   }
 
   void _startHydrationReminder() {
@@ -39,6 +44,11 @@ class _StaticTopBarState extends State<StaticTopBar> {
   }
 
   Future<void> _initializeNotifications() async {
+    if (!mounted) return;
+    setState(() {
+      _notifications.clear();
+    });
+
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getString('userId');
     if (userId == null) return;
@@ -83,6 +93,7 @@ class _StaticTopBarState extends State<StaticTopBar> {
 
   void _addNotification(String message) {
     if (!_notifications.contains(message)) {
+      if (!mounted) return;
       setState(() {
         _notifications.add(message);
       });
@@ -99,6 +110,7 @@ class _StaticTopBarState extends State<StaticTopBar> {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
+      if (!mounted) return;
       setState(() {
         avatarUrl = data['avatar_url'];
       });
@@ -114,7 +126,6 @@ class _StaticTopBarState extends State<StaticTopBar> {
       return;
     }
 
-    // 👉 Check and remove overlay if it's already shown
     if (_overlayEntry != null) {
       _overlayEntry?.remove();
       _overlayEntry = null;
@@ -180,7 +191,7 @@ class _StaticTopBarState extends State<StaticTopBar> {
                 final currentRoute = ModalRoute.of(context)?.settings.name;
 
                 if (currentRoute == '/account') {
-                  Navigator.pop(context); // Already on AccountPage, so go back
+                  Navigator.pop(context);
                 } else {
                   final result = await Navigator.push(
                     context,

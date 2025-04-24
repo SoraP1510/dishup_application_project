@@ -20,6 +20,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
+  final GlobalKey<StaticTopBarState> staticTopBarKey = GlobalKey();
   List<Meal> _meals = [];
   List<Activity> _activities = [];
   int _goalKcal = 2000;
@@ -115,6 +116,10 @@ class _HomePageState extends State<HomePage> {
       });
 
   void _onItemTapped(int index) async {
+    if (index == 0) {
+      staticTopBarKey.currentState?.refreshNotifications();
+      _fetchTodayData(); 
+    }
     if (index == 2) {
       final result = await Navigator.push(
         context,
@@ -122,6 +127,7 @@ class _HomePageState extends State<HomePage> {
       );
 
       if (result != null && result is Meal) {
+        final today = DateTime.now();
         final dateKey = DateTime(
           result.timestamp.year,
           result.timestamp.month,
@@ -129,7 +135,12 @@ class _HomePageState extends State<HomePage> {
         );
 
         setState(() {
-          _meals.add(result);
+          if (dateKey.year == today.year &&
+              dateKey.month == today.month &&
+              dateKey.day == today.day) {
+            _meals.add(result); 
+          }
+
           mealsPerDay.putIfAbsent(dateKey, () => []);
           mealsPerDay[dateKey]!.add(result);
 
@@ -255,6 +266,7 @@ class _HomePageState extends State<HomePage> {
           await _fetchTodayData();
           await _fetchQuote();
           await _fetchGoalKcal();
+          staticTopBarKey.currentState?.refreshNotifications();
         },
       ),
       CalendarPage(
@@ -276,7 +288,7 @@ class _HomePageState extends State<HomePage> {
             Padding(
               padding:
                   const EdgeInsets.only(top: 18.0, left: 16.0, right: 16.0),
-              child: const StaticTopBar(),
+              child: StaticTopBar(key: staticTopBarKey),
             ),
             Expanded(
               child: IndexedStack(
