@@ -32,7 +32,6 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _fetchTodayData();
-    // _fetchMealsFromBackend();
     _fetchGoalKcal();
     _fetchQuote();
   }
@@ -69,34 +68,6 @@ class _HomePageState extends State<HomePage> {
       });
     } else {
       print('❌ Failed to load quote');
-    }
-  }
-
-  Future<void> _fetchMealsFromBackend() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getString('userId');
-    if (userId == null) return;
-
-    final baseUrl = dotenv.env['BASE_URL']!;
-    final response =
-        await http.get(Uri.parse('$baseUrl/api/meals?user_id=$userId'));
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-
-      List<Meal> loadedMeals = data.map((json) => Meal.fromJson(json)).toList();
-
-      final Map<DateTime, List<Meal>> mapped = {};
-      for (var meal in loadedMeals) {
-        final key = DateTime(
-            meal.timestamp.year, meal.timestamp.month, meal.timestamp.day);
-        mapped.putIfAbsent(key, () => []).add(meal);
-      }
-
-      setState(() {
-        _meals = loadedMeals;
-        mealsPerDay = mapped;
-      });
     }
   }
 
@@ -159,8 +130,6 @@ class _HomePageState extends State<HomePage> {
 
         setState(() {
           _meals.add(result);
-
-          // อัปเดต mealsPerDay
           mealsPerDay.putIfAbsent(dateKey, () => []);
           mealsPerDay[dateKey]!.add(result);
 

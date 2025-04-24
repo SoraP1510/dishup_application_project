@@ -78,6 +78,7 @@ class _ActivityPageState extends State<ActivityPage> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: widget.existingActivity != null,
         title: Text(
             widget.existingActivity != null ? 'Edit Activity' : 'Add Activity'),
         backgroundColor: const Color(0xFF60BC2B),

@@ -8,7 +8,6 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -31,8 +30,7 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
     final baseUrl = dotenv.env['BASE_URL']!;
-    final url = Uri.parse(
-        '$baseUrl/api/login'); 
+    final url = Uri.parse('$baseUrl/api/login');
 
     try {
       final response = await http.post(
@@ -45,13 +43,13 @@ class _LoginPageState extends State<LoginPage> {
         final data = jsonDecode(response.body);
         final user = data['user'];
 
-        // 🔐 Save user info locally
+        // Save user info locally
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('userId', user['id']);
         await prefs.setString('userEmail', user['email']);
         await prefs.setString('userName', user['fullname']);
         await prefs.setBool('loggedIn', true);
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("✅ Login successful")),
         );
@@ -158,17 +156,17 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 16),
-                    child: Text(
-                      'FORGOT?',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[500],
-                      ),
-                    ),
-                  )
+                  // Padding(
+                  //   padding: const EdgeInsets.only(right: 16),
+                  //   child: Text(
+                  //     'FORGOT?',
+                  //     style: TextStyle(
+                  //       fontSize: 12,
+                  //       fontWeight: FontWeight.bold,
+                  //       color: Colors.grey[500],
+                  //     ),
+                  //   ),
+                  // )
                 ],
               ),
               const SizedBox(height: 40),
